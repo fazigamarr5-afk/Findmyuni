@@ -9,7 +9,6 @@ import './styles/animations.css';
 import { initScrollAnimations } from './utils/scrollAnimationObserver';
 import ScrollToTop from './components/UI/ScrollToTop';
 // Import Firebase to ensure it's initialized
-import './firebase.js';
 
 // Loading indicator
 const LoadingFallback = () => (
