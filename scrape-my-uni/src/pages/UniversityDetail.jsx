@@ -27,7 +27,7 @@ const UniversityDetail = () => {
   const fetchUniversityDetails = async () => {
     try {
       setLoading(true)
-      const data = await universityService.getById(id)
+      const data = await universityService.getUniversity(id)
       if (!data) {
         throw new Error("University not found")
       }

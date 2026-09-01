@@ -28,7 +28,7 @@ const ApplicationForm = () => {
 
   const fetchUniversityDetails = async () => {
     try {
-      const data = await universityService.getById(universityId);
+      const data = await universityService.getUniversity(universityId);
       setUniversity(data);
     } catch (err) {
       setError('Failed to fetch university details');

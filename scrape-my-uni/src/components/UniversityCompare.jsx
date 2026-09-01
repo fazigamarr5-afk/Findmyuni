@@ -112,7 +112,7 @@ const UniversityCompare = () => {
         
         // Fallback to individual fetching if compare endpoint fails
         const promises = selectedUniversities.map(uni => 
-          universityService.getById(uni.id)
+          universityService.getUniversity(uni.id)
         );
         const universities = await Promise.all(promises);
         setComparisonData(universities);
