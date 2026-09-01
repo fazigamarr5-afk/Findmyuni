@@ -43,4 +43,9 @@ ENV/
 
 # Docker
 .dockerignore
-docker-compose.override.yml 
+docker-compose.override.yml
+
+# Sensitive config files
+key.txt
+env.txt
+notepad .env.txt

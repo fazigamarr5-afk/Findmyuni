@@ -9,9 +9,8 @@ Use this script when the server-based approach isn't working.
 import os
 import sys
 import logging
-import firebase_admin
-from firebase_admin import credentials, firestore
 from datetime import datetime
+from firebase_admin import firestore
 
 # Add the parent directory to the Python path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -24,40 +23,10 @@ logging.basicConfig(
 logger = logging.getLogger("qau_data_import")
 
 def initialize_firebase():
-    """Initialize Firebase with credentials from a service account file."""
+    """Initialize Firebase using the shared config module."""
     try:
-        # Search in multiple locations for the credentials file
-        possible_paths = [
-            # Current directory
-            "firebase_key.json",
-            "firebase-service-account.json",
-            # Parent directory
-            os.path.join("..", "firebase-service-account.json"),
-            # App directory
-            os.path.join("..", "app", "services", "firebase_key.json"),
-            # Absolute paths
-            os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
-                        "firebase-service-account.json"),
-            "C:/Users/Usman/Desktop/Project/NEwith modules/NE/backend_project/firebase-service-account.json"
-        ]
-        
-        # Try each path until we find a valid one
-        cred_file = None
-        for path in possible_paths:
-            if os.path.exists(path):
-                cred_file = path
-                break
-                
-        if cred_file:
-            # Initialize with the found credentials file
-            logger.info(f"Initializing Firebase with credentials from: {cred_file}")
-            cred = credentials.Certificate(cred_file)
-            firebase_admin.initialize_app(cred)
-            return firestore.client()
-        else:
-            logger.error("Could not find Firebase credentials file")
-            return None
-            
+        from app.config.firebase import init_firebase
+        return init_firebase()
     except Exception as e:
         logger.error(f"Error initializing Firebase: {e}")
         return None

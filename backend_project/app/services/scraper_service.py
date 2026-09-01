@@ -8,7 +8,7 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import firestore
 import uuid
 import os
 import logging
@@ -49,7 +49,7 @@ if not logger.handlers:
         print_handler.setFormatter(formatter)
         logger.addHandler(print_handler)
 
-# Initialize Firebase Admin SDK - different approaches when run as script vs module
+# Initialize Firebase Admin SDK
 firebase_app = None
 db = None
 
@@ -57,42 +57,15 @@ def initialize_firebase():
     global firebase_app, db
     
     # Check if Firebase is already initialized
-    if firebase_app is not None:
+    if firebase_admin._apps:
+        db = firestore.client()
         return True
-        
+    
     try:
-        # Search in multiple locations for the credentials file
-        possible_paths = [
-            # Current directory
-            "firebase_key.json",
-            "firebase-service-account.json",
-            # Parent directory
-            os.path.join("..", "firebase-service-account.json"),
-            # Absolute paths
-            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 
-                        "firebase-service-account.json"),
-            "C:/Users/Usman/Desktop/Project/NEwith modules/NE/backend_project/firebase-service-account.json"
-        ]
-        
-        # Try each path until we find a valid one
-        cred_file = None
-        for path in possible_paths:
-            if os.path.exists(path):
-                cred_file = path
-                break
-                
-        if cred_file:
-            # Initialize with the found credentials file
-            print(f"Initializing Firebase with credentials from: {cred_file}")
-            cred = credentials.Certificate(cred_file)
-            firebase_app = firebase_admin.initialize_app(cred)
-            db = firestore.client()
-            logger.info(f"Firebase initialized with credentials from {cred_file}")
-            return True
-        else:
-            logger.error("Could not find Firebase credentials file in any of the expected locations")
-            return False
-            
+        from app.config.firebase import init_firebase
+        db = init_firebase()
+        firebase_app = firebase_admin._apps.get(list(firebase_admin._apps.keys())[0]) if firebase_admin._apps else None
+        return True
     except Exception as e:
         logger.error(f"Error initializing Firebase: {e}")
         print(f"Error initializing Firebase: {e}")
@@ -100,14 +73,7 @@ def initialize_firebase():
 
 # Initialize Firebase when imported as a module
 if __name__ != "__main__":
-    try:
-        # When imported as a module, we might be using FirebaseService
-        from app.services.firebase_service import FirebaseService
-        firebase_service = FirebaseService()
-        db = firestore.client()
-    except ImportError:
-        # If that fails, try to initialize directly
-        initialize_firebase()
+    initialize_firebase()
 
 def scrape_university_page(url):
     try:

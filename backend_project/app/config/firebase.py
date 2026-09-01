@@ -51,9 +51,26 @@ def init_firebase():
                 raise
         else:
             # Fallback to service account file (local development)
-            cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "./firebase-service-account.json")
-            if not os.path.exists(cred_path):
-                raise FileNotFoundError(f"Service account file not found at: {cred_path}")
+            cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+            if not cred_path or not os.path.exists(cred_path):
+                # Search for the credentials file in common locations
+                backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                possible_paths = [
+                    cred_path,
+                    os.path.join(backend_dir, "firebase-key.json"),
+                    os.path.join(backend_dir, "firebase-service-account.json"),
+                    os.path.join(backend_dir, "firebase_key.json"),
+                ]
+                cred_path = None
+                for path in possible_paths:
+                    if path and os.path.exists(path):
+                        cred_path = path
+                        break
+                if not cred_path:
+                    raise FileNotFoundError(
+                        "Firebase credentials not found. Set GOOGLE_APPLICATION_CREDENTIALS "
+                        "env var or place firebase-key.json in the backend_project/ directory."
+                    )
             cred = credentials.Certificate(cred_path)
             logger.info(f"Using Firebase credentials from file: {cred_path}")
         

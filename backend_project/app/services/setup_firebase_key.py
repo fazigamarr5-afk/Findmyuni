@@ -14,7 +14,7 @@ def setup_firebase_key():
         backend_dir = os.path.dirname(os.path.dirname(current_dir))
         
         # Source credentials file
-        source_file = os.path.join(backend_dir, "firebase-service-account.json")
+        source_file = os.path.join(backend_dir, "firebase-key.json")
         
         # Target location (same directory as the scraper script)
         target_file = os.path.join(current_dir, "firebase_key.json")

@@ -1,11 +1,10 @@
 """
 Script to clean university names in the database by removing "Admissions Open" text.
 """
-import firebase_admin
-from firebase_admin import credentials, firestore
 import os
 import sys
 import logging
+from firebase_admin import firestore
 from app.utils.text_processing import clean_university_name
 
 # Setup logging
@@ -20,39 +19,10 @@ logger = logging.getLogger("clean_uni_names")
 
 # Initialize Firebase
 def initialize_firebase():
+    """Initialize Firebase using the shared config module."""
     try:
-        # Search in multiple locations for the credentials file
-        possible_paths = [
-            # Current directory
-            "firebase_key.json",
-            "firebase-service-account.json",
-            # Parent directory
-            os.path.join("..", "firebase-service-account.json"),
-            # Absolute paths
-            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 
-                        "firebase-service-account.json"),
-            "C:/Users/Usman/Desktop/Project/NEwith modules/NE/backend_project/firebase-service-account.json"
-        ]
-        
-        # Try each path until we find a valid one
-        cred_file = None
-        for path in possible_paths:
-            if os.path.exists(path):
-                cred_file = path
-                break
-                
-        if cred_file:
-            # Initialize with the found credentials file
-            logger.info(f"Initializing Firebase with credentials from: {cred_file}")
-            cred = credentials.Certificate(cred_file)
-            firebase_app = firebase_admin.initialize_app(cred)
-            db = firestore.client()
-            logger.info(f"Firebase initialized successfully")
-            return db
-        else:
-            logger.error("Could not find Firebase credentials file in any of the expected locations")
-            return None
-            
+        from app.config.firebase import init_firebase
+        return init_firebase()
     except Exception as e:
         logger.error(f"Error initializing Firebase: {e}")
         return None

@@ -9,9 +9,9 @@ services:
       - "8000:8000"
     volumes:
       - ./logs:/app/logs
-      - ./firebase-service-account.json:/app/firebase-service-account.json:ro
+      - ./firebase-key.json:/app/firebase-key.json:ro
     environment:
-      - GOOGLE_APPLICATION_CREDENTIALS=/app/firebase-service-account.json
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/firebase-key.json
       - PORT=8000
       - ENV=production
     restart: unless-stopped 
