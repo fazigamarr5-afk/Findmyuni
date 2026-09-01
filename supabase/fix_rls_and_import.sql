@@ -1,16 +1,13 @@
 -- ============================================
 -- FIX: Infinite recursion in admins RLS policies
--- The original policies query the admins table to check
--- if the user is an admin, but the policy IS on the admins table,
--- causing infinite recursion.
+-- Run this in Supabase SQL Editor
 -- ============================================
 
--- Step 1: Drop the recursive policies on admins
+-- Step 1: Drop ALL existing policies on admins (the recursive ones)
 DROP POLICY IF EXISTS "Admins can view admins" ON admins;
 DROP POLICY IF EXISTS "Admins can manage admins" ON admins;
 
 -- Step 2: Create a security definer function to check admin status
--- This function runs as the definer (superuser) and bypasses RLS
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN AS $$
 BEGIN
@@ -32,8 +29,7 @@ CREATE POLICY "Admins can manage admins" ON admins
     auth.uid() = user_id OR public.is_admin()
   );
 
--- Step 4: Fix other policies that reference admins table (same recursion risk)
--- Users policies
+-- Step 4: Fix users policies (drop first, then recreate)
 DROP POLICY IF EXISTS "Admins can view all users" ON users;
 DROP POLICY IF EXISTS "Admins can update all users" ON users;
 
@@ -43,7 +39,7 @@ CREATE POLICY "Admins can view all users" ON users
 CREATE POLICY "Admins can update all users" ON users
   FOR UPDATE USING (public.is_admin());
 
--- Universities policies - keep public read, fix admin write
+-- Step 5: Fix universities policies
 DROP POLICY IF EXISTS "Anyone can view universities" ON universities;
 DROP POLICY IF EXISTS "Admins can manage universities" ON universities;
 
@@ -53,8 +49,9 @@ CREATE POLICY "Anyone can view universities" ON universities
 CREATE POLICY "Admins can manage universities" ON universities
   FOR ALL USING (public.is_admin());
 
--- Applications policies
+-- Step 6: Fix applications policies (ALL of them)
 DROP POLICY IF EXISTS "Users can view own applications" ON applications;
+DROP POLICY IF EXISTS "Users can create applications" ON applications;
 DROP POLICY IF EXISTS "Users can update own applications" ON applications;
 DROP POLICY IF EXISTS "Admins can delete applications" ON applications;
 
@@ -74,19 +71,19 @@ CREATE POLICY "Users can update own applications" ON applications
 CREATE POLICY "Admins can delete applications" ON applications
   FOR DELETE USING (public.is_admin());
 
--- Scrape requests
+-- Step 7: Fix scrape_requests policies
 DROP POLICY IF EXISTS "Users can view own scrape requests" ON scrape_requests;
 CREATE POLICY "Users can view own scrape requests" ON scrape_requests
   FOR SELECT USING (
     auth.uid() = user_id OR public.is_admin()
   );
 
--- Scrape jobs
+-- Step 8: Fix scrape_jobs policies
 DROP POLICY IF EXISTS "Admins can manage scrape jobs" ON scrape_jobs;
 CREATE POLICY "Admins can manage scrape jobs" ON scrape_jobs
   FOR ALL USING (public.is_admin());
 
--- Scrape batch jobs
+-- Step 9: Fix scrape_batch_jobs policies
 DROP POLICY IF EXISTS "Admins can manage batch jobs" ON scrape_batch_jobs;
 CREATE POLICY "Admins can manage batch jobs" ON scrape_batch_jobs
   FOR ALL USING (public.is_admin());
