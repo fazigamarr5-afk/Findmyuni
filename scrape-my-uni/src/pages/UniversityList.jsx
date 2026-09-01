@@ -23,8 +23,7 @@ import {
   TableRow,
   Divider
 } from '@mui/material';
-import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
-import { db } from '../firebase.js';
+import { supabase } from '../supabase';
 import { FilterAlt } from '@mui/icons-material';
 
 const UniversityList = () => {
@@ -120,12 +119,13 @@ const UniversityList = () => {
       } catch (apiError) {
         console.error('API fetch failed, falling back to Firebase:', apiError);
         
-        // Fallback to Firebase
+        // Fallback to Supabase
         try {
-          const universitiesCollection = collection(db, 'universities');
-          const universitiesSnapshot = await getDocs(universitiesCollection);
-          data = universitiesSnapshot.docs.map(doc => {
-            const uniData = doc.data();
+          const { data: supabaseData } = await supabase
+            .from('universities')
+            .select('*')
+            .order('name');
+          data = (supabaseData || []).map(uniData => {
             
             // Extract basic_info data if available and not already set
             if (uniData.basic_info) {

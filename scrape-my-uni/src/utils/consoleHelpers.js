@@ -1,5 +1,4 @@
-import { db } from '../firebase.js';
-import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import { supabase } from '../supabase';
 
 /**
  * Helper function to add an admin user from the console
@@ -14,33 +13,29 @@ export const setupConsoleHelpers = () => {
     
     try {
       // Check if admin already exists
-      const existingAdminQuery = query(
-        collection(db, 'admins'),
-        where('email', '==', email.toLowerCase())
-      );
+      const { data: existing } = await supabase
+        .from('admins')
+        .select('id')
+        .eq('email', email.toLowerCase())
+        .maybeSingle();
       
-      const existingAdminSnapshot = await getDocs(existingAdminQuery);
-      
-      if (!existingAdminSnapshot.empty) {
+      if (existing) {
         console.warn('Admin with this email already exists:', email);
         return { 
           success: false, 
           message: 'Admin already exists',
-          id: existingAdminSnapshot.docs[0].id
+          id: existing.id
         };
       }
       
-      // Add the admin
-      const adminData = {
+      const { data, error } = await supabase.from('admins').insert({
         email: email.toLowerCase(),
         name,
-        createdAt: new Date().toISOString(),
-        permissions: ['users.read', 'users.write', 'universities.read', 'universities.write']
-      };
+      }).select().single();
       
-      const docRef = await addDoc(collection(db, 'admins'), adminData);
-      console.log('Admin added successfully with ID:', docRef.id);
-      return { success: true, id: docRef.id };
+      if (error) throw error;
+      console.log('Admin added successfully with ID:', data.id);
+      return { success: true, id: data.id };
     } catch (error) {
       console.error('Error adding admin:', error);
       return { success: false, error };
@@ -49,21 +44,16 @@ export const setupConsoleHelpers = () => {
   
   window.listAdmins = async () => {
     try {
-      const adminsQuery = query(collection(db, 'admins'));
-      const snapshot = await getDocs(adminsQuery);
+      const { data, error } = await supabase.from('admins').select('*');
+      if (error) throw error;
       
-      if (snapshot.empty) {
+      if (!data || data.length === 0) {
         console.log('No admins found');
         return [];
       }
       
-      const admins = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      
-      console.table(admins);
-      return admins;
+      console.table(data);
+      return data;
     } catch (error) {
       console.error('Error listing admins:', error);
       return [];

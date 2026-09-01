@@ -1,19 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged,
-  GoogleAuthProvider,
-  signInWithPopup,
-  sendPasswordResetEmail,
-  updateProfile,
-  updateEmail,
-  updatePassword
-} from 'firebase/auth';
-import { db, auth } from '../firebase.js';
-import { doc, setDoc, getDoc, query, collection, getDocs, addDoc } from 'firebase/firestore';
-import { where } from 'firebase/firestore';
+import { supabase } from '../supabase';
 
 const AuthContext = createContext();
 
@@ -30,26 +16,29 @@ export function AuthProvider({ children }) {
   async function signup(email, password, name) {
     try {
       setError(null);
-      const result = await createUserWithEmailAndPassword(auth, email, password);
-      // Update profile
-      await updateProfile(result.user, {
-        displayName: name
+      const { data, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { display_name: name },
+        },
       });
-      
-      // Create user document in Firestore
-      await setDoc(doc(db, 'users', result.user.uid), {
-        uid: result.user.uid,
-        email: result.user.email,
-        displayName: name,
-        createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString()
-      });
-      
-      return result.user;
-    } catch (error) {
-      console.error("Signup error:", error);
-      setError(error.message);
-      throw error;
+      if (authError) throw authError;
+
+      // The trigger handle_new_user auto-creates the users row
+      // But we need to update display_name if set
+      if (data.user && name) {
+        await supabase
+          .from('users')
+          .update({ display_name: name })
+          .eq('id', data.user.id);
+      }
+
+      return data.user;
+    } catch (err) {
+      console.error('Signup error:', err);
+      setError(err.message);
+      throw err;
     }
   }
 
@@ -57,25 +46,25 @@ export function AuthProvider({ children }) {
   async function login(email, password) {
     try {
       setError(null);
-      const result = await signInWithEmailAndPassword(auth, email, password);
-      
-      // Update last login time in Firestore
-      try {
-        await setDoc(doc(db, 'users', result.user.uid), {
-          lastLogin: new Date().toISOString()
-        }, { merge: true });
-      } catch (firestoreError) {
-        console.error("Error updating last login:", firestoreError);
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (authError) throw authError;
+
+      // Update last login
+      if (data.user) {
+        await supabase
+          .from('users')
+          .update({ last_login: new Date().toISOString() })
+          .eq('id', data.user.id);
       }
-      
-      // Manually set current user to trigger state update
-      setCurrentUser(result.user);
-      
-      return result;
-    } catch (error) {
-      console.error("Login error:", error);
-      setError(error.message);
-      throw error;
+
+      return data;
+    } catch (err) {
+      console.error('Login error:', err);
+      setError(err.message);
+      throw err;
     }
   }
 
@@ -83,69 +72,18 @@ export function AuthProvider({ children }) {
   async function loginWithGoogle() {
     try {
       setError(null);
-      const provider = new GoogleAuthProvider();
-      
-      // Add scopes to request profile data
-      provider.addScope('profile');
-      provider.addScope('email');
-      
-      // Set custom parameters to ensure we get a high-quality photo
-      provider.setCustomParameters({
-        prompt: 'select_account',
-        // Request HD photo (remove size limitation)
-        include_granted_scopes: 'true'
+      const { data, error: authError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        },
       });
-      
-      // Use popup instead of redirect for better compatibility
-      const result = await signInWithPopup(auth, provider);
-      
-      // Get the Google Access Token
-      const credential = GoogleAuthProvider.credentialFromResult(result);
-      const token = credential?.accessToken;
-      const user = result.user;
-      
-      // Get profile photo URL without size restriction
-      // Google's default URL may have size restrictions like =s96-c
-      let photoURL = user.photoURL;
-      if (photoURL && photoURL.includes('=s96-c')) {
-        // Remove the size limitation to get a larger image
-        photoURL = photoURL.split('=s96-c')[0];
-      }
-      
-      console.log("Original photoURL:", user.photoURL);
-      console.log("Modified photoURL:", photoURL);
-      
-      // Also make sure user data is saved to Firestore
-      if (result && result.user) {
-        try {
-          const userDoc = await getDoc(doc(db, 'users', result.user.uid));
-          
-          if (!userDoc.exists()) {
-            await setDoc(doc(db, 'users', result.user.uid), {
-              uid: result.user.uid,
-              email: result.user.email,
-              displayName: result.user.displayName,
-              photoURL: photoURL, // Use modified URL
-              createdAt: new Date().toISOString(),
-              lastLogin: new Date().toISOString()
-            });
-          } else {
-            // Update last login and photo URL
-            await setDoc(doc(db, 'users', result.user.uid), {
-              lastLogin: new Date().toISOString(),
-              photoURL: photoURL // Update with modified URL
-            }, { merge: true });
-          }
-        } catch (firestoreError) {
-          console.error("Error saving user data:", firestoreError);
-        }
-      }
-      
-      return result;
-    } catch (error) {
-      console.error("Google login error:", error);
-      setError(error.message);
-      throw error;
+      if (authError) throw authError;
+      return data;
+    } catch (err) {
+      console.error('Google login error:', err);
+      setError(err.message);
+      throw err;
     }
   }
 
@@ -153,11 +91,13 @@ export function AuthProvider({ children }) {
   async function logout() {
     try {
       setError(null);
-      return await signOut(auth);
-    } catch (error) {
-      console.error("Logout error:", error);
-      setError(error.message);
-      throw error;
+      const { error: authError } = await supabase.auth.signOut();
+      if (authError) throw authError;
+      setCurrentUser(null);
+    } catch (err) {
+      console.error('Logout error:', err);
+      setError(err.message);
+      throw err;
     }
   }
 
@@ -165,11 +105,14 @@ export function AuthProvider({ children }) {
   async function resetPassword(email) {
     try {
       setError(null);
-      return await sendPasswordResetEmail(auth, email);
-    } catch (error) {
-      console.error("Password reset error:", error);
-      setError(error.message);
-      throw error;
+      const { error: authError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/login`,
+      });
+      if (authError) throw authError;
+    } catch (err) {
+      console.error('Password reset error:', err);
+      setError(err.message);
+      throw err;
     }
   }
 
@@ -177,15 +120,26 @@ export function AuthProvider({ children }) {
   async function updateUserProfile(displayName, photoURL) {
     try {
       setError(null);
-      if (!currentUser) throw new Error("No user is signed in");
-      return await updateProfile(currentUser, {
-        displayName,
-        photoURL
+      if (!currentUser) throw new Error('No user is signed in');
+
+      // Update auth metadata
+      const updates = {};
+      if (displayName) updates.display_name = displayName;
+      if (photoURL) updates.photo_url = photoURL;
+
+      await supabase.auth.updateUser({
+        data: { display_name: displayName, avatar_url: photoURL },
       });
-    } catch (error) {
-      console.error("Profile update error:", error);
-      setError(error.message);
-      throw error;
+
+      // Update users table
+      await supabase
+        .from('users')
+        .update(updates)
+        .eq('id', currentUser.id);
+    } catch (err) {
+      console.error('Profile update error:', err);
+      setError(err.message);
+      throw err;
     }
   }
 
@@ -193,12 +147,13 @@ export function AuthProvider({ children }) {
   async function updateUserEmail(email) {
     try {
       setError(null);
-      if (!currentUser) throw new Error("No user is signed in");
-      return await updateEmail(currentUser, email);
-    } catch (error) {
-      console.error("Email update error:", error);
-      setError(error.message);
-      throw error;
+      if (!currentUser) throw new Error('No user is signed in');
+      const { error: authError } = await supabase.auth.updateUser({ email });
+      if (authError) throw authError;
+    } catch (err) {
+      console.error('Email update error:', err);
+      setError(err.message);
+      throw err;
     }
   }
 
@@ -206,131 +161,94 @@ export function AuthProvider({ children }) {
   async function updateUserPassword(password) {
     try {
       setError(null);
-      if (!currentUser) throw new Error("No user is signed in");
-      return await updatePassword(currentUser, password);
-    } catch (error) {
-      console.error("Password update error:", error);
-      setError(error.message);
-      throw error;
+      if (!currentUser) throw new Error('No user is signed in');
+      const { error: authError } = await supabase.auth.updateUser({ password });
+      if (authError) throw authError;
+    } catch (err) {
+      console.error('Password update error:', err);
+      setError(err.message);
+      throw err;
     }
   }
 
-  // Add this new function to verify admin status
+  // Verify admin status
   async function verifyAdminStatus() {
     try {
       setError(null);
-      if (!currentUser) {
-        throw new Error("No user is signed in");
+      if (!currentUser) throw new Error('No user is signed in');
+
+      // Check admins table
+      const { data: adminData, error: adminError } = await supabase
+        .from('admins')
+        .select('*')
+        .eq('email', currentUser.email.toLowerCase())
+        .maybeSingle();
+
+      if (adminError) {
+        console.error('Admin check error:', adminError);
+        return false;
       }
-      
-      console.log("Verifying admin status for", currentUser.email);
-      
-      // First check user document for admin role
-      const userDocRef = doc(db, 'users', currentUser.uid);
-      const userDoc = await getDoc(userDocRef);
-      
-      // Check if user has admin role in users collection
-      const isAdminInUserDoc = userDoc.exists() && userDoc.data().role === 'admin';
-      
-      // Also check admins collection
-      const adminQuery = query(
-        collection(db, 'admins'),
-        where('email', '==', currentUser.email.toLowerCase())
-      );
-      
-      const adminSnapshot = await getDocs(adminQuery);
-      const isInAdminsCollection = !adminSnapshot.empty;
-      
+
+      const isInAdminsCollection = !!adminData;
+
+      // Check user role
+      const { data: userData } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', currentUser.id)
+        .maybeSingle();
+
+      const isAdminInUserDoc = userData?.role === 'admin';
+
       // Fix inconsistencies
       if (isAdminInUserDoc && !isInAdminsCollection) {
-        // User has admin role but missing from admins collection
-        console.log("Fixing admin status: Adding to admins collection");
-        await addDoc(collection(db, 'admins'), {
-          userId: currentUser.uid,
+        await supabase.from('admins').insert({
+          user_id: currentUser.id,
           email: currentUser.email.toLowerCase(),
-          name: currentUser.displayName || userDoc.data().name || 'Admin User',
-          createdAt: new Date().toISOString(),
-          permissions: ['users.read', 'users.write', 'universities.read', 'universities.write']
+          name: currentUser.user_metadata?.display_name || 'Admin User',
         });
       } else if (!isAdminInUserDoc && isInAdminsCollection) {
-        // User is in admins collection but not marked as admin in users document
-        console.log("Fixing admin status: Updating user document");
-        await setDoc(userDocRef, {
-          role: 'admin',
-          updatedAt: new Date().toISOString()
-        }, { merge: true });
+        await supabase
+          .from('users')
+          .update({ role: 'admin' })
+          .eq('id', currentUser.id);
       }
-      
-      // Force token refresh to ensure authentication state reflects admin status
-      await currentUser.getIdToken(true);
-      
-      // Return admin status
+
       return isAdminInUserDoc || isInAdminsCollection;
-    } catch (error) {
-      console.error("Admin verification error:", error);
-      setError(error.message);
-      throw error;
+    } catch (err) {
+      console.error('Admin verification error:', err);
+      setError(err.message);
+      return false;
     }
   }
 
   // Listen for auth state changes
   useEffect(() => {
-    console.log("Setting up auth state listener");
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      console.log("Auth state changed:", user ? `User logged in: ${user.email}` : "No user");
-      setCurrentUser(user);
-      
-      // Update last login when user logs in
-      if (user) {
-        try {
-          const userData = {
-            lastLogin: new Date().toISOString()
-          };
-          
-          // Better error handling for Firestore writes
-          try {
-            // Check if user document exists first to avoid permission errors
-            const userDocRef = doc(db, 'users', user.uid);
-            const userDoc = await getDoc(userDocRef);
-            
-            if (!userDoc.exists()) {
-              // Create a new user document if it doesn't exist
-              console.log(`Creating new user document for ${user.email}`);
-              await setDoc(userDocRef, {
-                uid: user.uid,
-                email: user.email,
-                displayName: user.displayName || '',
-                createdAt: new Date().toISOString(),
-                ...userData
-              });
-            } else {
-              // Just update the lastLogin field
-              await setDoc(userDocRef, userData, { merge: true });
-            }
-            
-            console.log("Updated last login time for", user.email);
-          } catch (firestoreError) {
-            console.error('Firestore error updating last login:', firestoreError);
-            
-            // Check for specific firestore errors
-            if (firestoreError.code === 'permission-denied') {
-              console.error('Permission denied. Ensure the user has proper permissions.');
-            } else if (firestoreError.name === 'FirebaseError' && firestoreError.message.includes('400')) {
-              console.error('Invalid document format. Check data structure:', userData);
-            }
-          }
-        } catch (error) {
-          console.error('Error updating last login:', error);
-        }
-      }
-      
-      setLoading(false);
-    }, (error) => {
-      console.error("Auth state change error:", error);
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setCurrentUser(session?.user ?? null);
       setLoading(false);
     });
 
-    return unsubscribe;
+    // Listen for changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
+        setCurrentUser(session?.user ?? null);
+
+        // Update last login on sign in
+        if (event === 'SIGNED_IN' && session?.user) {
+          await supabase
+            .from('users')
+            .update({ last_login: new Date().toISOString() })
+            .eq('id', session.user.id);
+        }
+
+        setLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const value = {
@@ -346,7 +264,7 @@ export function AuthProvider({ children }) {
     updateUserProfile,
     updateUserEmail,
     updateUserPassword,
-    verifyAdminStatus
+    verifyAdminStatus,
   };
 
   return (

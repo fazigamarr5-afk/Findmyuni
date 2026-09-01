@@ -22,9 +22,7 @@ import {
   Assessment as AssessmentIcon,
   Settings as SettingsIcon
 } from '@mui/icons-material';
-import { collection, query, where, getDocs, addDoc, serverTimestamp, doc, updateDoc, deleteDoc, onSnapshot, getDoc, limit } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
-import { db } from '../firebase.js';
+import { supabase } from '../supabase';
 import { adminService, checkApiConnectivity, isUsingFirestoreFallback } from '../services/api.service.js';
 
 const StyledContainer = styled(Container)(({ theme }) => ({
@@ -71,26 +69,17 @@ const AdminDashboard = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [formData, setFormData] = useState({});
   const theme = useTheme();
-  const auth = getAuth();
-  const { currentUser } = auth;
+  const { currentUser } = useAuth();
 
   useEffect(() => {
     fetchDashboardData();
     
-    // Set up real-time listener for users
-    const usersQuery = query(collection(db, 'users'));
-    const unsubscribe = onSnapshot(usersQuery, (snapshot) => {
-      const usersData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setUsers(usersData);
-    }, (error) => {
-      console.error("Error setting up real-time listener for users:", error);
-    });
-    
-    // Clean up listener on component unmount
-    return () => unsubscribe();
+    // Fetch users from Supabase
+    const fetchUsers = async () => {
+      const { data } = await supabase.from('users').select('*').order('created_at', { ascending: false });
+      if (data) setUsers(data);
+    };
+    fetchUsers();
   }, []);
 
   useEffect(() => {
@@ -150,45 +139,17 @@ const AdminDashboard = () => {
         }
       }
       
-      // Set up real-time listener for universities
-      const unisRef = collection(db, 'universities');
-      const unisQuery = query(unisRef);
-      const unsubscribe = onSnapshot(unisQuery, (snapshot) => {
-        const universitiesList = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setUniversities(universitiesList);
-      }, (error) => {
-        console.error('Error in universities snapshot listener:', error);
-      });
+      // Fetch universities from Supabase
+      const { data: unisData } = await supabase.from('universities').select('*').order('name');
+      if (unisData) setUniversities(unisData);
       
-      // Get applications in real-time
-      const applicationsRef = collection(db, 'applications');
-      onSnapshot(applicationsRef, (snapshot) => {
-        const applicationsList = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setApplications(applicationsList);
-      }, (error) => {
-        console.error('Error in applications snapshot:', error);
-      });
+      // Fetch applications
+      const { data: appsData } = await supabase.from('applications').select('*').order('created_at', { ascending: false });
+      if (appsData) setApplications(appsData);
       
-      // Get scrape jobs
-      const scrapeJobsRef = collection(db, 'scrape_jobs');
-      const scrapeJobsQuery = query(scrapeJobsRef, limit(20));
-      onSnapshot(scrapeJobsQuery, (snapshot) => {
-        const jobsList = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setScrapeJobs(jobsList);
-      }, (error) => {
-        console.error('Error in scrape jobs snapshot:', error);
-      });
-      
-      return unsubscribe;
+      // Fetch scrape jobs
+      const { data: jobsData } = await supabase.from('scrape_jobs').select('*').order('created_at', { ascending: false }).limit(20);
+      if (jobsData) setScrapeJobs(jobsData);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       setError('Failed to load dashboard data');
@@ -346,18 +307,14 @@ const AdminDashboard = () => {
         return;
       }
       
-      // Add the current user as an admin if they aren't already
-      const adminsRef = collection(db, 'admins');
+      // Check if already admin
+      const { data: existing } = await supabase
+        .from('admins')
+        .select('id')
+        .eq('email', currentUser.email.toLowerCase())
+        .maybeSingle();
       
-      // Check if the user is already an admin
-      const existingAdminQuery = query(
-        collection(db, 'admins'),
-        where('email', '==', currentUser.email.toLowerCase())
-      );
-      
-      const existingAdminSnapshot = await getDocs(existingAdminQuery);
-      
-      if (!existingAdminSnapshot.empty) {
+      if (existing) {
         setSuccess('You are already registered as an admin');
         showToast('You are already registered as an admin', 'info');
         setTimeout(() => setSuccess(''), 3000);
@@ -365,11 +322,10 @@ const AdminDashboard = () => {
       }
       
       // Add as admin
-      await addDoc(adminsRef, {
+      await supabase.from('admins').insert({
         email: currentUser.email.toLowerCase(),
-        name: currentUser.displayName || 'Admin User',
-        createdAt: new Date().toISOString(),
-        permissions: ['users.read', 'users.write', 'universities.read', 'universities.write']
+        name: currentUser.user_metadata?.display_name || currentUser.displayName || 'Admin User',
+        user_id: currentUser.id,
       });
       
       setSuccess('Added yourself as an admin');
@@ -425,11 +381,10 @@ const AdminDashboard = () => {
         await adminService.updateUser(selectedItem.id, formData);
         showToast('User updated successfully', 'success');
       } else if (dialogType === 'editUniversity' && selectedItem) {
-        const universityRef = doc(db, 'universities', selectedItem.id);
-        await updateDoc(universityRef, {
+        await supabase.from('universities').update({
           ...formData,
-          updatedAt: new Date().toISOString()
-        });
+          updated_at: new Date().toISOString()
+        }).eq('id', selectedItem.id);
         showToast('University updated successfully', 'success');
       }
       
@@ -445,7 +400,7 @@ const AdminDashboard = () => {
   const handleDeleteItem = async (type, id) => {
     try {
       if (type === 'university') {
-        await deleteDoc(doc(db, 'universities', id));
+        await supabase.from('universities').delete().eq('id', id);
         showToast('University deleted successfully', 'success');
       } else if (type === 'user') {
         // Handle user deletion (with caution)

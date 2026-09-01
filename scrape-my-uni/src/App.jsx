@@ -3,8 +3,7 @@ import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-
 import { useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import ProtectedRoute from './components/ProtectedRoute';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from './firebase.js';
+import { supabase } from './supabase';
 import PageTransition from './components/UI/PageTransition';
 import LoadingSpinner from './components/UI/LoadingSpinner';
 import NavBar from './components/NavBar';
@@ -56,16 +55,13 @@ const AdminRoute = ({ children }) => {
       }
       
       try {
-        // Query the admins collection to check if this user is an admin
-        const adminQuery = query(
-          collection(db, 'admins'), 
-          where('email', '==', currentUser.email.toLowerCase())
-        );
+        const { data } = await supabase
+          .from('admins')
+          .select('id')
+          .eq('email', currentUser.email.toLowerCase())
+          .maybeSingle();
         
-        const adminSnapshot = await getDocs(adminQuery);
-        
-        if (!adminSnapshot.empty) {
-          // User is an admin
+        if (data) {
           setIsAdmin(true);
         } else {
           console.log('User is not an admin:', currentUser.email);

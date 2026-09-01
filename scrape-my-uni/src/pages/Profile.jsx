@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
-import { db } from '../firebase.js';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { supabase } from '../supabase';
 import { useToast } from '../context/ToastContext.jsx';
 import { useTheme } from '@mui/material/styles';
 
@@ -29,16 +28,19 @@ const Profile = () => {
         setLoading(true);
         if (!currentUser?.uid) return;
 
-        const userRef = doc(db, 'users', currentUser.uid);
-        const userSnap = await getDoc(userRef);
+        const { data: userSnap } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', currentUser.id)
+          .single();
         
-        if (userSnap.exists()) {
+        if (userSnap) {
           setUserData({
-            displayName: currentUser.displayName || '',
+            displayName: currentUser.user_metadata?.display_name || '',
             email: currentUser.email || '',
-            phoneNumber: currentUser.phoneNumber || '',
-            photoURL: currentUser.photoURL || '',
-            ...userSnap.data()
+            phoneNumber: userSnap.phone_number || '',
+            photoURL: currentUser.user_metadata?.avatar_url || '',
+            ...userSnap
           });
         } else {
           // Create default user data if not exists
@@ -181,10 +183,11 @@ const Profile = () => {
       }
       
       // Update user data in Firestore
-      const userRef = doc(db, 'users', currentUser.uid);
-      await updateDoc(userRef, {
-        displayName: userData.displayName,
-        phoneNumber: userData.phoneNumber || '',
+      await supabase
+        .from('users')
+        .update({
+        display_name: userData.displayName,
+        phone_number: userData.phoneNumber || '',
         educationLevel: userData.educationLevel || '',
         academicInterest: userData.academicInterest || '',
         province: userData.province || '',
@@ -192,11 +195,10 @@ const Profile = () => {
         bio: userData.bio || '',
         address: userData.address || '',
         city: userData.city || '',
-        dateOfBirth: userData.dateOfBirth || '',
-        gender: userData.gender || '',
         notifications: userData.notifications || {},
-        updatedAt: new Date().toISOString()
-      });
+        updated_at: new Date().toISOString()
+        })
+        .eq('id', currentUser.id);
       
       showToast('Profile updated successfully', 'success');
     } catch (error) {

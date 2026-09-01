@@ -3,8 +3,7 @@ import { Container, Grid, Paper, Typography, CircularProgress, Box, Alert, Snack
 import { useAuth } from '../context/AuthContext.jsx';
 import ScrapeRequests from '../components/ScrapeRequests.jsx';
 import RequestScrape from '../components/RequestScrape.jsx';
-import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
-import { db } from '../firebase.js';
+import { supabase } from '../supabase';
 
 const ScrapeManagement = () => {
   const { user } = useAuth();
@@ -16,32 +15,26 @@ const ScrapeManagement = () => {
   useEffect(() => {
     if (!user) return;
 
-    const requestsRef = collection(db, 'scrape_requests');
-    const q = query(
-      requestsRef,
-      where('requestedBy', '==', user.uid),
-      orderBy('requestedAt', 'desc')
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const requestsData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setRequests(requestsData);
-        setLoading(false);
-      },
-      (error) => {
-        console.error('Error fetching requests:', error);
+    const fetchRequests = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('scrape_requests')
+          .select('*')
+          .eq('user_id', user.id || user.uid)
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        setRequests(data || []);
+      } catch (err) {
+        console.error('Error fetching requests:', err);
         setError('Failed to fetch scraping requests');
-        setLoading(false);
         showSnackbar('Error fetching requests', 'error');
+      } finally {
+        setLoading(false);
       }
-    );
+    };
 
-    return () => unsubscribe();
+    fetchRequests();
   }, [user]);
 
   const showSnackbar = (message, severity = 'success') => {

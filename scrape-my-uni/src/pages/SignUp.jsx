@@ -1,8 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
-import { doc, setDoc } from 'firebase/firestore';
-import { db } from '../firebase.js';
+import { supabase } from '../supabase';
 
 const SignUp = () => {
   const { signup } = useAuth();
@@ -37,12 +36,15 @@ const SignUp = () => {
       if (user) {
         // Store additional user data in Firestore
         try {
-          await setDoc(doc(db, 'users', user.uid), {
-            educationLevel: form.educationLevel,
-            academicInterest: form.academicInterest,
-            province: form.province,
-            grades: form.grades
-          }, { merge: true });
+          await supabase
+            .from('users')
+            .update({
+              education_level: form.educationLevel,
+              academic_interest: form.academicInterest,
+              province: form.province,
+              grades: form.grades
+            })
+            .eq('id', user.id);
         } catch (profileError) {
           console.error('Error storing additional profile data:', profileError);
         }

@@ -8,8 +8,7 @@ import {
   CircularProgress,
   Autocomplete
 } from '@mui/material';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../firebase.js';
+import { supabase } from '../supabase';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const RequestScrape = ({ onSuccess }) => {
@@ -29,13 +28,10 @@ const RequestScrape = ({ onSuccess }) => {
         throw new Error('Please select a university');
       }
 
-      const requestsRef = collection(db, 'scrape_requests');
-      await addDoc(requestsRef, {
-        universityId,
+      await supabase.from('scrape_requests').insert({
+        university_url: universityId,
         status: 'pending',
-        requestedBy: user.uid,
-        requestedAt: serverTimestamp(),
-        error: null
+        user_id: user?.id || user?.uid,
       });
 
       setUniversityId('');

@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FaBars, FaTimes, FaUserCircle, FaChevronRight } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext.jsx";
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "../firebase.js";
+import { supabase } from '../supabase';
 import { useTheme } from '@mui/material/styles';
 
 const NavBar = () => {
@@ -54,15 +53,13 @@ const NavBar = () => {
       if (!currentUser) return;
       
       try {
-        // Query the admins collection to check if this user is an admin
-        const adminQuery = query(
-          collection(db, 'admins'), 
-          where('email', '==', currentUser.email.toLowerCase())
-        );
+        const { data } = await supabase
+          .from('admins')
+          .select('id')
+          .eq('email', currentUser.email.toLowerCase())
+          .maybeSingle();
         
-        const adminSnapshot = await getDocs(adminQuery);
-        
-        if (!adminSnapshot.empty) {
+        if (data) {
           setIsAdmin(true);
         }
       } catch (err) {

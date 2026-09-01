@@ -1,364 +1,354 @@
 import api from './axios-config';
-
-// Re-export api for use by other services
-export { api };
-import { db } from '../firebase.js';
-import {
-  collection,
-  query,
-  getDocs,
-  doc,
-  updateDoc,
-  deleteDoc,
-  where,
-  addDoc,
-  serverTimestamp,
-  getDoc,
-  setDoc
-} from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { supabase } from '../supabase';
 
 // Track whether we're in fallback mode
-let usingFirestoreFallback = false;
+let usingSupabaseFallback = false;
 
-export const isUsingFirestoreFallback = () => usingFirestoreFallback;
+export const isUsingFirestoreFallback = () => usingSupabaseFallback;
 
 // Check if the backend API is reachable
 export const checkApiConnectivity = async () => {
   try {
     const response = await api.get('/health', { timeout: 5000 });
-    usingFirestoreFallback = false;
+    usingSupabaseFallback = false;
     return true;
   } catch (error) {
-    console.warn('Backend API unreachable, using Firestore fallback mode');
-    usingFirestoreFallback = true;
+    console.warn('Backend API unreachable, using Supabase direct mode');
+    usingSupabaseFallback = true;
     return false;
   }
 };
 
-// Get auth token for API requests
-const getAuthToken = async () => {
-  try {
-    const auth = getAuth();
-    if (auth.currentUser) {
-      return await auth.currentUser.getIdToken();
-    }
-    return null;
-  } catch (error) {
-    console.error('Error getting auth token:', error);
-    return null;
-  }
-};
-
-// Create authenticated API request
-const authApi = async (method, url, data = null) => {
-  const token = await getAuthToken();
-  const config = {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  };
-
-  switch (method) {
-    case 'GET':
-      return api.get(url, config);
-    case 'POST':
-      return api.post(url, data, config);
-    case 'PUT':
-      return api.put(url, data, config);
-    case 'DELETE':
-      return api.delete(url, config);
-    default:
-      throw new Error(`Unsupported method: ${method}`);
-  }
-};
+// Re-export api for use by other services
+export { api };
 
 // ========== ADMIN SERVICE ==========
 
 class AdminService {
-  // Get dashboard statistics
   async getDashboardStats() {
     try {
-      const response = await authApi('GET', '/admin/dashboard');
+      const response = await api.get('/admin/dashboard');
       return response.data;
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
-      // Fallback: count from Firestore
-      return this.getDashboardStatsFromFirebase();
+      return this.getDashboardStatsFromSupabase();
     }
   }
 
-  async getDashboardStatsFromFirebase() {
+  async getDashboardStatsFromSupabase() {
     try {
       const [universities, users, applications, scrapeJobs] = await Promise.all([
-        getDocs(collection(db, 'universities')),
-        getDocs(collection(db, 'users')),
-        getDocs(collection(db, 'applications')),
-        getDocs(query(collection(db, 'scrape_jobs'), where('status', '==', 'pending'))),
+        supabase.from('universities').select('id', { count: 'exact', head: true }),
+        supabase.from('users').select('id', { count: 'exact', head: true }),
+        supabase.from('applications').select('id', { count: 'exact', head: true }),
+        supabase.from('scrape_jobs').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       ]);
 
       return {
-        totalUniversities: universities.size,
-        totalUsers: users.size,
-        totalApplications: applications.size,
-        pendingScrapeJobs: scrapeJobs.size,
+        totalUniversities: universities.count || 0,
+        totalUsers: users.count || 0,
+        totalApplications: applications.count || 0,
+        pendingScrapeJobs: scrapeJobs.count || 0,
       };
     } catch (error) {
-      console.error('Error getting stats from Firebase:', error);
+      console.error('Error getting stats from Supabase:', error);
       return { totalUsers: 0, totalUniversities: 0, totalApplications: 0, pendingScrapeJobs: 0 };
     }
   }
 
-  // Get all users
   async getUsers() {
     try {
-      const response = await authApi('GET', '/admin/users');
+      const response = await api.get('/admin/users');
       return response.data.users || [];
     } catch (error) {
-      console.error('Error fetching users from API:', error);
-      return this.getUsersFromFirebase();
+      return this.getUsersFromSupabase();
     }
   }
 
-  async getUsersFromFirebase() {
+  async getUsersFromSupabase() {
     try {
-      const snapshot = await getDocs(collection(db, 'users'));
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
     } catch (error) {
-      console.error('Error fetching users from Firebase:', error);
+      console.error('Error fetching users from Supabase:', error);
       return [];
     }
   }
 
-  // Update a user
   async updateUser(userId, data) {
     try {
-      await authApi('PUT', `/admin/users/${userId}`, data);
+      await api.put(`/admin/users/${userId}`, data);
     } catch (error) {
-      console.error('Error updating user via API:', error);
-      // Fallback to Firestore
-      await updateDoc(doc(db, 'users', userId), data);
+      await supabase.from('users').update(data).eq('id', userId);
     }
   }
 
-  // Delete a user
   async deleteUser(userId) {
     try {
-      await authApi('DELETE', `/admin/users/${userId}`);
+      await api.delete(`/admin/users/${userId}`);
     } catch (error) {
-      console.error('Error deleting user via API:', error);
-      await deleteDoc(doc(db, 'users', userId));
+      await supabase.from('users').delete().eq('id', userId);
     }
   }
 
-  // Set user as admin
   async setUserAsAdmin(userId, isAdmin) {
     try {
-      await authApi('PUT', `/admin/users/${userId}/admin`, { isAdmin });
+      await api.put(`/admin/users/${userId}/admin`, { isAdmin });
     } catch (error) {
-      console.error('Error setting admin via API:', error);
-      // Fallback: manage admins collection
-      const userDoc = await getDoc(doc(db, 'users', userId));
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        if (isAdmin) {
-          // Add to admins collection
-          await addDoc(collection(db, 'admins'), {
+      if (isAdmin) {
+        const { data: userData } = await supabase.from('users').select('*').eq('id', userId).single();
+        if (userData) {
+          await supabase.from('admins').upsert({
+            user_id: userId,
             email: userData.email.toLowerCase(),
-            name: userData.displayName || userData.name || 'Admin',
-            createdAt: new Date().toISOString(),
-            permissions: ['users.read', 'users.write', 'universities.read', 'universities.write'],
+            name: userData.display_name || 'Admin',
           });
-          await updateDoc(doc(db, 'users', userId), { role: 'admin' });
-        } else {
-          // Remove from admins collection
-          const adminQuery = query(collection(db, 'admins'), where('email', '==', userData.email.toLowerCase()));
-          const adminSnapshot = await getDocs(adminQuery);
-          for (const adminDoc of adminSnapshot.docs) {
-            await deleteDoc(doc(db, 'admins', adminDoc.id));
-          }
-          await updateDoc(doc(db, 'users', userId), { role: 'user' });
+          await supabase.from('users').update({ role: 'admin' }).eq('id', userId);
         }
+      } else {
+        await supabase.from('admins').delete().eq('user_id', userId);
+        await supabase.from('users').update({ role: 'user' }).eq('id', userId);
       }
     }
   }
 
-  // Trigger a scrape job for a university
   async triggerScrapeJob(universityId) {
     try {
-      await authApi('POST', '/scrape/scrape-university', { universityId });
+      await api.post('/scrape/scrape-university', { universityId });
     } catch (error) {
-      console.error('Error triggering scrape job:', error);
-      // Create a scrape request in Firestore as fallback
-      await addDoc(collection(db, 'scrape_requests'), {
-        universityId,
+      await supabase.from('scrape_requests').insert({
+        user_id: (await supabase.auth.getUser()).data.user?.id,
+        university_url: universityId,
         status: 'pending',
-        requestedAt: new Date().toISOString(),
-        requestedBy: getAuth().currentUser?.uid || 'unknown',
       });
     }
   }
 
-  // Trigger batch scrape for all universities
   async triggerBatchScrapeJob() {
     try {
-      await authApi('POST', '/admin/scrape-jobs/batch');
+      await api.post('/admin/scrape-jobs/batch');
     } catch (error) {
       console.error('Error triggering batch scrape:', error);
       throw error;
     }
   }
 
-  // Update an application
   async updateApplication(applicationId, status) {
     try {
-      await authApi('PUT', `/admin/applications/${applicationId}`, { status });
+      await api.put(`/admin/applications/${applicationId}`, { status });
     } catch (error) {
-      console.error('Error updating application via API:', error);
-      await updateDoc(doc(db, 'applications', applicationId), {
-        status,
-        updatedAt: new Date().toISOString(),
-      });
+      await supabase.from('applications').update({ status }).eq('id', applicationId);
     }
   }
 }
 
 export const adminService = new AdminService();
 
-// ========== UNIVERSITY SERVICE (API-based) ==========
+// ========== UNIVERSITY SERVICE ==========
 
 class UniversityApiService {
   async getUniversities(params = {}) {
     try {
-      const response = await authApi('GET', '/universities/');
+      const response = await api.get('/universities/');
       return response.data.universities || [];
     } catch (error) {
-      console.error('Error fetching universities:', error);
-      return this.getUniversitiesFromFirebase();
+      return this.getUniversitiesFromSupabase();
     }
   }
 
-  async getUniversitiesFromFirebase() {
+  async getUniversitiesFromSupabase() {
     try {
-      const snapshot = await getDocs(collection(db, 'universities'));
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const { data, error } = await supabase
+        .from('universities')
+        .select('*')
+        .order('name');
+      if (error) throw error;
+      return data || [];
     } catch (error) {
-      console.error('Error fetching universities from Firebase:', error);
+      console.error('Error fetching universities from Supabase:', error);
       return [];
     }
   }
 
   async getUniversity(id) {
     try {
-      const response = await authApi('GET', `/universities/${id}`);
+      const response = await api.get(`/universities/${id}`);
       return response.data;
     } catch (error) {
-      console.error('Error fetching university:', error);
-      const docSnap = await getDoc(doc(db, 'universities', id));
-      if (docSnap.exists()) {
-        return { id: docSnap.id, ...docSnap.data() };
-      }
-      throw new Error('University not found');
+      const { data, error: dbError } = await supabase
+        .from('universities')
+        .select('*')
+        .eq('id', id)
+        .single();
+      if (dbError) throw new Error('University not found');
+      return data;
     }
   }
 
   async searchUniversities(queryStr, filters = {}) {
     try {
-      const response = await authApi('POST', '/universities/search', { query: queryStr, filters });
+      const response = await api.post('/universities/search', { query: queryStr, filters });
       return response.data;
     } catch (error) {
-      console.error('Error searching universities:', error);
-      const all = await this.getUniversitiesFromFirebase();
-      return all.filter(uni =>
-        uni.name?.toLowerCase().includes(queryStr.toLowerCase()) ||
-        uni.description?.toLowerCase().includes(queryStr.toLowerCase())
-      );
+      const { data } = await supabase
+        .from('universities')
+        .select('*')
+        .ilike('name', `%${queryStr}%`);
+      return data || [];
     }
   }
 
   async getPrograms() {
     try {
-      const response = await authApi('GET', '/universities/programs');
+      const response = await api.get('/universities/programs');
       return response.data;
     } catch (error) {
-      return [];
+      const { data } = await supabase.from('universities').select('programs');
+      const allPrograms = new Set();
+      (data || []).forEach(uni => {
+        if (uni.programs && typeof uni.programs === 'object') {
+          Object.values(uni.programs).forEach(progs => {
+            if (Array.isArray(progs)) {
+              progs.forEach(p => allPrograms.add(p));
+            }
+          });
+        }
+      });
+      return [...allPrograms].sort();
     }
   }
 
   async getLocations() {
     try {
-      const response = await authApi('GET', '/universities/locations');
+      const response = await api.get('/universities/locations');
       return response.data;
     } catch (error) {
-      return [];
+      const { data } = await supabase.from('universities').select('basic_info');
+      const locations = new Set();
+      (data || []).forEach(uni => {
+        const loc = uni.basic_info?.Location;
+        if (loc) locations.add(loc);
+      });
+      return [...locations].sort();
     }
   }
 
   async createUniversity(data) {
-    const response = await authApi('POST', '/universities/', data);
+    const response = await api.post('/universities/', data);
     return response.data;
   }
 
   async updateUniversity(id, data) {
-    const response = await authApi('PUT', `/universities/${id}`, data);
-    return response.data;
+    const { error } = await supabase.from('universities').update(data).eq('id', id);
+    if (error) throw error;
   }
 
   async deleteUniversity(id) {
-    const response = await authApi('DELETE', `/universities/${id}`);
-    return response.data;
+    const { error } = await supabase.from('universities').delete().eq('id', id);
+    if (error) throw error;
   }
 }
 
 export const universityService = new UniversityApiService();
+
+// ========== USER SERVICE ==========
+
+class UserService {
+  async getUsers() {
+    try {
+      const response = await api.get('/admin/users');
+      return response.data.users || [];
+    } catch (error) {
+      return this.getUsersFromSupabase();
+    }
+  }
+
+  async getUsersFromSupabase() {
+    try {
+      const { data, error } = await supabase.from('users').select('*');
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      return [];
+    }
+  }
+
+  async getUser(userId) {
+    try {
+      const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
+      if (error) throw new Error('User not found');
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateUser(userId, data) {
+    const { error } = await supabase.from('users').update(data).eq('id', userId);
+    if (error) throw error;
+  }
+
+  async deleteUser(userId) {
+    const { error } = await supabase.from('users').delete().eq('id', userId);
+    if (error) throw error;
+  }
+}
+
+export const userService = new UserService();
 
 // ========== APPLICATION SERVICE ==========
 
 class ApplicationService {
   async getApplications() {
     try {
-      const response = await authApi('GET', '/application/');
+      const response = await api.get('/application/');
       return response.data.applications || [];
     } catch (error) {
-      console.error('Error fetching applications:', error);
-      return this.getApplicationsFromFirebase();
+      return this.getApplicationsFromSupabase();
     }
   }
 
-  async getApplicationsFromFirebase() {
+  async getApplicationsFromSupabase() {
     try {
-      const userId = getAuth().currentUser?.uid;
-      if (!userId) return [];
-      const q = query(collection(db, 'applications'), where('userId', '==', userId));
-      const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from('applications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
     } catch (error) {
-      console.error('Error fetching applications from Firebase:', error);
+      console.error('Error fetching applications:', error);
       return [];
     }
   }
 
   async submitApplication(data) {
     try {
-      const response = await authApi('POST', '/application/', data);
-      return response.data;
+      const user = (await supabase.auth.getUser()).data.user;
+      const { error } = await supabase.from('applications').insert({
+        ...data,
+        user_id: user?.id,
+        status: 'pending',
+        submitted_at: new Date().toISOString(),
+      });
+      if (error) throw error;
     } catch (error) {
       console.error('Error submitting application:', error);
-      const docRef = await addDoc(collection(db, 'applications'), {
-        ...data,
-        userId: getAuth().currentUser?.uid,
-        status: 'pending',
-        submittedAt: new Date().toISOString(),
-      });
-      return { id: docRef.id };
+      throw error;
     }
   }
 
   async updateApplication(id, data) {
-    try {
-      const response = await authApi('PUT', `/application/${id}`, data);
-      return response.data;
-    } catch (error) {
-      await updateDoc(doc(db, 'applications', id), data);
-    }
+    const { error } = await supabase.from('applications').update(data).eq('id', id);
+    if (error) throw error;
   }
 }
 
@@ -399,58 +389,3 @@ class ConnectionStatus {
 }
 
 export const connectionStatus = new ConnectionStatus();
-
-// ========== USER SERVICE ==========
-
-class UserService {
-  async getUsers() {
-    try {
-      const response = await authApi('GET', '/admin/users');
-      return response.data.users || [];
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      return this.getUsersFromFirebase();
-    }
-  }
-
-  async getUsersFromFirebase() {
-    try {
-      const snapshot = await getDocs(collection(db, 'users'));
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } catch (error) {
-      console.error('Error fetching users from Firebase:', error);
-      return [];
-    }
-  }
-
-  async getUser(userId) {
-    try {
-      const response = await authApi('GET', `/admin/users/${userId}`);
-      return response.data;
-    } catch (error) {
-      const docSnap = await getDoc(doc(db, 'users', userId));
-      if (docSnap.exists()) {
-        return { id: docSnap.id, ...docSnap.data() };
-      }
-      throw new Error('User not found');
-    }
-  }
-
-  async updateUser(userId, data) {
-    try {
-      await authApi('PUT', `/admin/users/${userId}`, data);
-    } catch (error) {
-      await updateDoc(doc(db, 'users', userId), data);
-    }
-  }
-
-  async deleteUser(userId) {
-    try {
-      await authApi('DELETE', `/admin/users/${userId}`);
-    } catch (error) {
-      await deleteDoc(doc(db, 'users', userId));
-    }
-  }
-}
-
-export const userService = new UserService();

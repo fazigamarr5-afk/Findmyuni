@@ -11,8 +11,7 @@ import {
   Alert,
   Paper
 } from '@mui/material';
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../firebase.js';
+import { supabase } from '../supabase';
 
 const AdminLogin = () => {
   const { login, currentUser, logout } = useAuth();
@@ -34,20 +33,16 @@ const AdminLogin = () => {
       if (!currentUser) return;
       
       try {
-        // Query the admins collection to check if this user is an admin
-        const adminQuery = query(
-          collection(db, 'admins'), 
-          where('email', '==', currentUser.email)
-        );
+        const { data } = await supabase
+          .from('admins')
+          .select('id')
+          .eq('email', currentUser.email)
+          .maybeSingle();
         
-        const adminSnapshot = await getDocs(adminQuery);
-        
-        if (!adminSnapshot.empty) {
-          // User is an admin, redirect to admin dashboard
+        if (data) {
           console.log('Admin user verified, redirecting to dashboard');
           navigate('/admin/dashboard', { replace: true });
         } else {
-          // User is not an admin
           console.log('User is not an admin');
           showToast('Unauthorized: Admin access required', 'error');
           await logout();

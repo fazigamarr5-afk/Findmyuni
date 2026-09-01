@@ -1,5 +1,4 @@
-import { db } from '../firebase.js';
-import { collection, addDoc, doc, setDoc, getDoc } from 'firebase/firestore';
+import { supabase } from '../supabase';
 
 /**
  * Adds a new admin user to Firestore
@@ -10,18 +9,13 @@ import { collection, addDoc, doc, setDoc, getDoc } from 'firebase/firestore';
  */
 export const addAdmin = async (email, name = 'Admin User') => {
   try {
-    // Check if admin already exists
-    const adminsRef = collection(db, 'admins');
-    const adminData = {
+    const { data, error } = await supabase.from('admins').insert({
       email: email.toLowerCase(),
       name,
-      createdAt: new Date().toISOString(),
-      permissions: ['users.read', 'users.write', 'universities.read', 'universities.write']
-    };
+    }).select().single();
     
-    // Add the admin document
-    const docRef = await addDoc(adminsRef, adminData);
-    return docRef.id;
+    if (error) throw error;
+    return data.id;
   } catch (error) {
     console.error('Error adding admin:', error);
     throw error;
@@ -38,11 +32,13 @@ export const isAdmin = async (email) => {
   if (!email) return false;
   
   try {
-    // Query admins collection where email matches
-    const adminRef = doc(db, 'admins', email.toLowerCase());
-    const adminDoc = await getDoc(adminRef);
+    const { data } = await supabase
+      .from('admins')
+      .select('id')
+      .eq('email', email.toLowerCase())
+      .maybeSingle();
     
-    return adminDoc.exists();
+    return !!data;
   } catch (error) {
     console.error('Error checking admin status:', error);
     return false;
