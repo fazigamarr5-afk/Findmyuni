@@ -1,90 +1,67 @@
 import requests
 from bs4 import BeautifulSoup
 import re
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
 import time
-import firebase_admin
-from firebase_admin import firestore
 import uuid
 import os
 import logging
 import sys
 import traceback
+from datetime import datetime
 
 # Handle imports differently based on how the script is run
 try:
     from app.utils.text_processing import clean_university_name
 except ModuleNotFoundError:
-    # When running as a standalone script, adjust import path
     sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
     try:
         from app.utils.text_processing import clean_university_name
     except ModuleNotFoundError:
-        # If still fails, define a simple fallback function
         def clean_university_name(name):
             if not name:
                 return ""
-            # Basic cleaning - strip whitespace and handle common abbreviations
-            name = name.strip()
-            return name
+            return name.strip()
 
 # Setup logging
 logger = logging.getLogger("scraper")
 if not logger.handlers:
-    # Configure handlers if they don't exist
     handler = logging.StreamHandler()
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     logger.setLevel(logging.INFO)
-    
-    # Also log to stdout when running as a script
     if __name__ == "__main__":
-        # Also print to stdout
         print_handler = logging.StreamHandler(sys.stdout)
         print_handler.setFormatter(formatter)
         logger.addHandler(print_handler)
 
-# Initialize Firebase Admin SDK
-firebase_app = None
+# Initialize Supabase client
 db = None
 
-def initialize_firebase():
-    global firebase_app, db
-    
-    # Check if Firebase is already initialized
-    if firebase_admin._apps:
-        db = firestore.client()
-        return True
-    
+def initialize_supabase():
+    """Initialize the Supabase client."""
+    global db
     try:
-        from app.config.firebase import init_firebase
-        db = init_firebase()
-        firebase_app = firebase_admin._apps.get(list(firebase_admin._apps.keys())[0]) if firebase_admin._apps else None
+        from app.config.supabase import get_supabase
+        db = get_supabase()
+        logger.info("Supabase connected successfully")
         return True
     except Exception as e:
-        logger.error(f"Error initializing Firebase: {e}")
-        print(f"Error initializing Firebase: {e}")
+        logger.error(f"Error initializing Supabase: {e}")
+        print(f"Error initializing Supabase: {e}")
         return False
 
-# Initialize Firebase when imported as a module
+# Initialize when imported as a module
 if __name__ != "__main__":
-    initialize_firebase()
+    initialize_supabase()
 
 def scrape_university_page(url):
+    """Scrape a single university page from pakeducareers.com."""
     try:
-        # Send GET request
-        response = requests.get(url)
+        response = requests.get(url, timeout=30)
         response.raise_for_status()
-
-        # Parse the HTML
         soup = BeautifulSoup(response.text, "html.parser")
 
-        # Initialize dictionary to store all extracted data
         university_data = {
             "name": "",
             "basic_info": {},
@@ -92,8 +69,8 @@ def scrape_university_page(url):
             "programs": {},
             "apply_link": "",
             "url": url,
-            "scraped_at": firestore.SERVER_TIMESTAMP,
-            "admissionOpen": True  # Default to true for new/updated universities
+            "scraped_at": datetime.utcnow().isoformat(),
+            "admission_open": True,
         }
 
         # Extract University Name
@@ -101,15 +78,14 @@ def scrape_university_page(url):
         if name_element:
             university_data["name"] = clean_university_name(name_element.get_text(strip=True))
         else:
-            print("Warning: University name not found.")
-            # Try fallback selector
             alt_name_el = soup.find("h1", class_=re.compile(r"text-primary"))
             if alt_name_el:
                 university_data["name"] = clean_university_name(alt_name_el.get_text(strip=True))
-                print(f"Found university name with fallback selector: {university_data['name']}")
 
         # Extract Basic Info from Table
         table = soup.find("table", class_="min-w-full border-collapse border border-primary text-primary font-semibold")
+        if not table:
+            table = soup.find("table", class_=re.compile(r"min-w-full"))
         if table:
             for row in table.find_all("tr"):
                 cells = row.find_all("td")
@@ -117,17 +93,6 @@ def scrape_university_page(url):
                     key = cells[0].get_text(strip=True)
                     value = cells[1].get_text(strip=True)
                     university_data["basic_info"][key] = value
-        else:
-            print("Warning: Basic info table not found.")
-            # Try fallback selector
-            alt_table = soup.find("table", class_=re.compile(r"min-w-full"))
-            if alt_table:
-                for row in alt_table.find_all("tr"):
-                    cells = row.find_all("td")
-                    if len(cells) == 2:
-                        key = cells[0].get_text(strip=True)
-                        value = cells[1].get_text(strip=True)
-                        university_data["basic_info"][key] = value
 
         # Extract Description
         desc_element = soup.find("div", class_="University_Description")
@@ -135,10 +100,6 @@ def scrape_university_page(url):
             desc_h1 = desc_element.find("h1")
             if desc_h1:
                 university_data["description"] = desc_h1.get_text(strip=True)
-            else:
-                print("Warning: Description header not found.")
-        else:
-            print("Warning: Description section not found.")
 
         # Extract Offered Programs
         programs_section = soup.find("div", class_="University_Programs")
@@ -147,26 +108,21 @@ def scrape_university_page(url):
             for category in program_categories:
                 category_title = category.find("h1", class_=re.compile(r"font-bold.*underline"))
                 programs_list = category.find("div", class_="pl-2 flex flex-col gap-1")
-                # Only process if both title and programs list exist
                 if category_title and programs_list:
                     category_name = category_title.get_text(strip=True)
                     programs = []
                     for prog in programs_list.find_all("h1"):
                         prog_text = prog.get_text(strip=True)
-                        # Extract program name, removing numbering
                         if ". " in prog_text:
                             try:
                                 prog_name = prog_text.split(". ", 1)[1]
                                 programs.append(prog_name)
                             except IndexError:
-                                print(f"Warning: Could not parse program: {prog_text}")
                                 continue
                         else:
                             programs.append(prog_text)
-                    if programs:  # Only add category if it has programs
+                    if programs:
                         university_data["programs"][category_name] = programs
-        else:
-            print("Warning: Programs section not found.")
 
         # Extract Apply Link
         apply_section = soup.find("div", class_="HOW_TO_APPLY?")
@@ -174,15 +130,10 @@ def scrape_university_page(url):
             apply_link = apply_section.find("a", href=True)
             if apply_link and "href" in apply_link.attrs:
                 university_data["apply_link"] = apply_link["href"]
-            else:
-                print("Warning: Apply link not found.")
         else:
-            print("Warning: Apply section not found.")
-            # Try fallback for apply link
             apply_btn = soup.find("a", string=re.compile(r"Apply", re.IGNORECASE))
             if apply_btn and apply_btn.get("href"):
                 university_data["apply_link"] = apply_btn["href"]
-                print(f"Found apply link with fallback selector: {university_data['apply_link']}")
 
         return university_data
 
@@ -193,135 +144,76 @@ def scrape_university_page(url):
         print(f"Error parsing {url}: {e}")
         return None
 
-def store_in_firestore(data):
-    if not data or not data.get("name"):
-        print("No valid data to store in Firestore.")
-        return None
-    
-    try:
-        # Extract document ID from URL (e.g., 67f51adc67c7579713621086 from /university/67f51adc67c7579713621086)
-        url_parts = data["url"].split("/")
-        doc_id = url_parts[-1] if url_parts[-1] else str(uuid.uuid4())
 
-        # Store in Firestore
-        doc_ref = db.collection("universities").document(doc_id)
-        doc_ref.set(data)
-        print(f"Successfully stored data for {data['name']} in Firestore (ID: {doc_id})")
-        return doc_id
-    except Exception as e:
-        print(f"Error storing data in Firestore: {e}")
+def store_in_supabase(data):
+    """Store scraped university data in Supabase."""
+    if not data or not data.get("name"):
+        print("No valid data to store in Supabase.")
         return None
+
+    try:
+        existing = db.table("universities").select("id").eq("name", data["name"]).execute()
+
+        row_data = {
+            "name": data["name"],
+            "description": data.get("description", ""),
+            "url": data.get("url", ""),
+            "apply_link": data.get("apply_link", ""),
+            "admission_open": data.get("admission_open", True),
+            "basic_info": data.get("basic_info", {}),
+            "programs": data.get("programs", {}),
+            "scholarships": data.get("scholarships", {}),
+            "facilities": data.get("facilities", {}),
+            "scraped_at": datetime.utcnow().isoformat(),
+        }
+
+        if existing.data:
+            doc_id = existing.data[0]["id"]
+            db.table("universities").update(row_data).eq("id", doc_id).execute()
+            print(f"Updated {data['name']} in Supabase (ID: {doc_id})")
+            return doc_id
+        else:
+            result = db.table("universities").insert(row_data).execute()
+            doc_id = result.data[0]["id"]
+            print(f"Inserted {data['name']} into Supabase (ID: {doc_id})")
+            return doc_id
+
+    except Exception as e:
+        print(f"Error storing data in Supabase: {e}")
+        return None
+
 
 def display_data(data):
+    """Display scraped university data."""
     if not data:
         print("No data to display.")
         return
 
     print(f"\n=== University Information: {data['url']} ===")
     print(f"Name: {data['name']}")
-    
+
     print("\nBasic Information:")
     if data["basic_info"]:
         for key, value in data["basic_info"].items():
             print(f"  {key}: {value}")
-    else:
-        print("  No basic information available.")
-    
+
     print("\nDescription:")
     print(f"  {data['description'] or 'No description available.'}")
-    
+
     print("\nOffered Programs:")
     if data["programs"]:
         for category, programs in data["programs"].items():
             print(f"  {category}:")
-            if programs:
-                for i, program in enumerate(programs, 1):
-                    print(f"    {i}. {program}")
-            else:
-                print("    No programs listed.")
-    else:
-        print("  No programs available.")
-    
+            for i, program in enumerate(programs, 1):
+                print(f"    {i}. {program}")
+
     print("\nAdmission:")
     print(f"  Apply Link: {data['apply_link'] or 'No apply link available.'}")
 
+
 def scrape_all_universities():
-    """Main function to scrape all universities and store in Firestore"""
-    scraped_universities = []
-    driver = None
-    
-    try:
-        # Set up Chrome options
-        options = Options()
-        options.add_argument("--headless=new")
-        options.add_argument("--disable-gpu")
-        options.add_argument("--window-size=1920,1080")
-        
-        # Start Chrome driver
-        print("Starting Chrome WebDriver...")
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-        driver.get("https://pakeducareers.com")
-        print("Navigated to https://pakeducareers.com")
-        time.sleep(5)  # Wait for JS to load
-
-        # Collect university links
-        print("Collecting university links...")
-        elements = driver.find_elements(By.XPATH, '//a[starts-with(@href, "/university/")]')
-        
-        base_url = "https://pakeducareers.com"
-        links = set()
-
-        for el in elements:
-            href = el.get_attribute("href")
-            if href:
-                full_url = href if href.startswith("http") else base_url + href
-                links.add(full_url)
-
-        driver.quit()
-        driver = None
-
-        print(f"Total unique university links found: {len(links)}\n")
-        if not links:
-            print("No university links found. Exiting.")
-            return []
-
-        # Process each university link
-        for i, link in enumerate(links, start=1):
-            print(f"--- Processing {i}/{len(links)}: {link} ---")
-            data = scrape_university_page(link)
-            if data:
-                doc_id = store_in_firestore(data)
-                if doc_id:
-                    data["id"] = doc_id
-                    scraped_universities.append(data)
-            else:
-                print("No data found or error occurred.")
-            print("\n")
-        
-        print(f"Scraping completed. Scraped {len(scraped_universities)} universities.")
-        return scraped_universities
-
-    except Exception as e:
-        print(f"Error during Selenium scraping: {e}")
-        if driver:
-            driver.quit()
-        return []
-
-# Execute the script if run directly
-if __name__ == "__main__":
-    print("Starting university scraper...")
-    
-    # Initialize Firebase when run as script
-    if not initialize_firebase():
-        print("Failed to initialize Firebase. Exiting.")
-        sys.exit(1)
-        
-    try:
-        print("Starting university scraping process...")
-        universities = scrape_all_universities()
-        print(f"Scraping complete. Processed {len(universities)} universities.")
-        sys.exit(0)
-    except Exception as e:
-        print(f"Error during scraping: {e}")
-        print(f"Traceback: {traceback.format_exc()}")
-        sys.exit(1)
+    """Main function to scrape all universities and store in Supabase."""
+    from selenium import webdriver
+    from selenium.webdriver.chrome.service import Service
+    from selenium.webdriver.common.by import By
+    fro

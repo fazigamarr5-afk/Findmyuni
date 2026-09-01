@@ -2,7 +2,7 @@ import requests
 import re
 from bs4 import BeautifulSoup
 import logging
-from firebase_admin import firestore
+from datetime import datetime
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -52,7 +52,7 @@ def scrape_qau_university():
             "programs": {},
             "apply_link": "https://qau.edu.pk/admission-notice-for-mphil-ms-programme-spring-semester-2025/",
             "url": "https://qau.edu.pk/",
-            "scraped_at": firestore.SERVER_TIMESTAMP,
+            "scraped_at": datetime.utcnow().isoformat(),
             "admissionOpen": default_admission_open
         }
         
@@ -169,35 +169,42 @@ def scrape_qau_university():
         logger.error(f"Error during QAU scraping: {e}")
         return None
 
-def store_qau_in_firestore(db, data):
-    """Store QAU data in Firestore."""
+def store_qau_in_supabase(db, data):
+    """Store QAU data in Supabase."""
     if not data or not data.get("name"):
-        logger.error("No valid QAU data to store in Firestore.")
-        return None
-    
-    try:
-        # Check if QAU already exists in Firestore
-        qau_docs = db.collection("universities").where("name", "==", data["name"]).stream()
-        qau_docs = list(qau_docs)
-        
-        if qau_docs:
-            # Update existing document
-            doc_id = qau_docs[0].id
-            db.collection("universities").document(doc_id).update(data)
-            logger.info(f"Updated QAU data in Firestore (ID: {doc_id})")
-            return doc_id
-        else:
-            # Create new document
-            doc_ref = db.collection("universities").document()
-            doc_ref.set(data)
-            logger.info(f"Stored new QAU data in Firestore (ID: {doc_ref.id})")
-            return doc_ref.id
-            
-    except Exception as e:
-        logger.error(f"Error storing QAU data in Firestore: {e}")
+        logger.error("No valid QAU data to store in Supabase.")
         return None
 
-# Execute if run directly
+    try:
+        existing = db.table("universities").select("id").eq("name", data["name"]).execute()
+
+        row_data = {
+            "name": data["name"],
+            "description": data.get("description", ""),
+            "url": data.get("url", ""),
+            "apply_link": data.get("apply_link", ""),
+            "admission_open": data.get("admission_open", True),
+            "basic_info": data.get("basic_info", {}),
+            "programs": data.get("programs", {}),
+            "scholarships": data.get("scholarships", {}),
+            "facilities": data.get("facilities", {}),
+            "scraped_at": datetime.utcnow().isoformat(),
+        }
+
+        if existing.data:
+            doc_id = existing.data[0]["id"]
+            db.table("universities").update(row_data).eq("id", doc_id).execute()
+            logger.info(f"Updated QAU in Supabase (ID: {doc_id})")
+            return doc_id
+        else:
+            result = db.table("universities").insert(row_data).execute()
+            doc_id = result.data[0]["id"]
+            logger.info(f"Inserted QAU into Supabase (ID: {doc_id})")
+            return doc_id
+    except Exception as e:
+        logger.error(f"Error storing QAU in Supabase: {e}")
+        return None
+
 if __name__ == "__main__":
     # Configure logging
     logging.basicConfig(

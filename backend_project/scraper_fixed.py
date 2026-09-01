@@ -6,17 +6,16 @@ from datetime import datetime
 # Add backend_project to path for config imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-import firebase_admin
-from firebase_admin import firestore
+from datetime import datetime
 
-# Initialize Firebase using shared config
-print("🔑 Initializing Firebase...")
+# Initialize Supabase using shared config
+print("🔑 Initializing Supabase...")
 try:
-    from app.config.firebase import init_firebase
-    db = init_firebase()
-    print("✅ Firebase connected!")
+    from app.config.supabase import get_supabase
+    db = get_supabase()
+    print("✅ Supabase connected!")
 except Exception as e:
-    print(f"❌ Firebase initialization failed: {e}")
+    print(f"❌ Supabase initialization failed: {e}")
     sys.exit(1)
 
 def scrape_university_basic_info():
@@ -34,10 +33,9 @@ def scrape_university_basic_info():
         {"name": "GIKI", "city": "Swabi", "type": "Private", "established": 1993, "website": "giki.edu.pk"},
     ]
     
-    # Save to Firebase
+    # Save to Supabase
     for uni in universities:
-        doc_ref = db.collection('universities').document(uni['name'].replace(' ', '_'))
-        doc_ref.set(uni)
+        db.table('universities').upsert({'name': uni['name'], 'basic_info': uni}).execute()
         print(f"✅ Added: {uni['name']}")
     
     return universities
@@ -54,8 +52,7 @@ def add_sample_programs():
     ]
     
     for prog in programs:
-        doc_ref = db.collection('programs').document(f"{prog['university']}_{prog['name']}".replace(' ', '_'))
-        doc_ref.set(prog)
+        db.table('programs').upsert(prog).execute()
         print(f"  📚 Added program: {prog['name']} at {prog['university']}")
 
 def add_merit_data():
@@ -70,8 +67,7 @@ def add_merit_data():
     ]
     
     for merit in merits:
-        doc_ref = db.collection('merit_lists').document(f"{merit['university']}_{merit['program']}_{merit['year']}".replace(' ', '_'))
-        doc_ref.set(merit)
+        db.table('merit_lists').upsert(merit).execute()
         print(f"  📊 Added merit: {merit['program']} at {merit['university']} ({merit['year']})")
 
 # Main execution
@@ -86,7 +82,7 @@ add_merit_data()
 
 print("\n" + "="*50)
 print(f"✅ COMPLETE! Added {len(unis)} universities")
-print("✅ Data saved to Firebase Firestore")
+print("✅ Data saved to Supabase")
 print("="*50)
 
 # Optional: Save local backup
