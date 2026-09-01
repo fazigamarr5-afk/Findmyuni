@@ -10,13 +10,17 @@ const ConnectionStatus = () => {
   });
 
   useEffect(() => {
-    // Add a listener to the connection status emitter
-    const listenerId = connectionStatus.addListener((newStatus) => {
-      setStatus(prev => ({ ...prev, ...newStatus }));
+    // Subscribe to connection status changes
+    const unsubscribe = connectionStatus.subscribe((isOnline) => {
+      setStatus(prev => ({
+        ...prev,
+        isBackendConnected: isOnline,
+        usingFirestoreFallback: !isOnline
+      }));
     });
     
     // Clean up on unmount
-    return () => connectionStatus.removeListener(listenerId);
+    return unsubscribe;
   }, []);
   
   const toggleExpanded = () => {
