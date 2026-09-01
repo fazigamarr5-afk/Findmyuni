@@ -32,7 +32,7 @@ const UniversityList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showError, setShowError] = useState(false);
-  const [usingFirebase, setUsingFirebase] = useState(false);
+  const [usingDirectDB, setUsingDirectDB] = useState(false);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'table'
   const [displayCount, setDisplayCount] = useState(12);
   const [initialFilterApplied, setInitialFilterApplied] = useState(false);
@@ -111,15 +111,15 @@ const UniversityList = () => {
       try {
         data = await universityService.getAll();
         if (Array.isArray(data) && data.length > 0) {
-          setUsingFirebase(false);
+        // Success from API
         } else {
           // If API returns empty or invalid data, fall back to Firebase
           throw new Error('Invalid or empty data from API');
         }
       } catch (apiError) {
-        console.error('API fetch failed, falling back to Firebase:', apiError);
+        console.error('API fetch failed, falling back to Supabase:', apiError);
         
-        // Fallback to Supabase
+        // Fallback to Supabase direct query
         try {
           const { data: supabaseData } = await supabase
             .from('universities')
@@ -140,22 +140,19 @@ const UniversityList = () => {
             }
             
             return {
-              id: doc.id,
               ...uniData
             };
           });
           
           // Debug: Log the data to see if location field exists
-          console.log('Firebase university data (first 3 items):', data.slice(0, 3));
+          console.log('Supabase university data (first 3 items):', data.slice(0, 3));
           console.log('Location fields exist in data:', data.some(uni => uni.location));
           
-          setUsingFirebase(true);
-          
           if (data.length === 0) {
-            throw new Error('No universities found in Firebase');
+            throw new Error('No universities found in Supabase');
           }
         } catch (firestoreError) {
-          console.error('Firebase fallback also failed:', firestoreError);
+          console.error('Supabase fallback also failed:', firestoreError);
           throw new Error('Failed to fetch university data from both API and database');
         }
       }
@@ -653,42 +650,7 @@ const UniversityList = () => {
         </Alert>
       </Snackbar>
       
-      {usingFirebase && (
-        <Alert severity="info" sx={{ mb: 2 }}>
-          Using local database due to API connection issues. Some features may be limited.
-          <Button 
-            size="small" 
-            color="primary"
-            onClick={() => {
-              // Simple fix to extract data from basic_info
-              const fixedUniversities = universities.map(uni => {
-                const fixedUni = {...uni};
-                
-                // Copy values from basic_info if available
-                if (fixedUni.basic_info) {
-                  if (fixedUni.basic_info.Location && !fixedUni.location) {
-                    fixedUni.location = fixedUni.basic_info.Location;
-                  }
-                  if (fixedUni.basic_info.Sector && !fixedUni.sector) {
-                    fixedUni.sector = fixedUni.basic_info.Sector;
-                  }
-                }
-                
-                return fixedUni;
-              });
-              
-              // Update universities data
-              setUniversities(fixedUniversities);
-              setFilteredUniversities(fixedUniversities);
-              setError('University data has been updated. Location information should now display correctly.');
-              setShowError(true);
-            }}
-            sx={{ ml: 2 }}
-          >
-            Fix Location Data
-          </Button>
-        </Alert>
-      )}
+
       
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold', color: '#294B29' }}>
