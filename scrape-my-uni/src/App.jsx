@@ -6,6 +6,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { supabase } from './supabase';
 import PageTransition from './components/UI/PageTransition';
 import LoadingSpinner from './components/UI/LoadingSpinner';
+import LanguageToggle from './components/LanguageToggle';
 import NavBar from './components/NavBar';
 import Footer from './components/Footer';
 import PageLoadingBar from './components/UI/PageLoadingBar';
@@ -36,6 +37,7 @@ const AdminLogin = lazy(() => import('./pages/AdminLogin.jsx'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard.jsx'));
 const ScrapeManagement = lazy(() => import('./pages/ScrapeManagement.jsx'));
 const UniversityCompare = lazy(() => import('./components/UniversityCompare.jsx'));
+const DeadlineCalendar = lazy(() => import('./pages/DeadlineCalendar.jsx'));
 const UIExamples = lazy(() => import('./pages/UIExamples.jsx'));
 
 // Lazy-load non-critical components
@@ -152,8 +154,9 @@ function App() {
             <div className="sticky top-0 z-50">
               <PageLoadingBar />
               <NavBar />
-              {/* Floating theme toggle button */}
-              <Box sx={{ position: 'fixed', top: 16, right: 16, zIndex: 2000 }}>
+              {/* Floating toggle buttons */}
+              <Box sx={{ position: 'fixed', top: 16, right: 16, zIndex: 2000, display: 'flex', gap: 1 }}>
+                <LanguageToggle />
                 <IconButton onClick={toggleTheme} color="inherit" sx={{ bgcolor: 'background.paper', boxShadow: 2 }}>
                   {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
                 </IconButton>
@@ -174,6 +177,7 @@ function App() {
                     <Route path="/universities" element={<UniversityList />} />
                     <Route path="/universities/:id" element={<UniversityDetail />} />
                     <Route path="/compare" element={<UniversityCompare />} />
+                    <Route path="/deadlines" element={<DeadlineCalendar />} />
                     <Route path="/ui-examples" element={<UIExamples />} />
                     
                     {/* Protected Routes */}

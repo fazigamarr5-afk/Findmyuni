@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet-async"
 import { useAuth } from "../context/AuthContext"
 import { universityService, favoritesService } from "../services/api.service"
 import { supabase } from "../supabase"
+import UniversityReviews from "../components/UniversityReviews"
 import { Chip, Button, Tab, Tabs, Box, Tooltip, IconButton } from "@mui/material"
 import { MapOutlined, SchoolOutlined, CalendarMonthOutlined, AccountBalanceOutlined, ChevronRight, OpenInNew, StarOutline, StarBorderOutlined, WorkspacePremiumOutlined, HotelOutlined, MenuBookOutlined } from "@mui/icons-material"
 
@@ -426,6 +427,11 @@ const UniversityDetail = () => {
                 </div>
               </section>
             )}
+
+            {/* Reviews */}
+            <section className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <UniversityReviews universityId={id} />
+            </section>
           </div>
 
           {/* Right Sidebar */}

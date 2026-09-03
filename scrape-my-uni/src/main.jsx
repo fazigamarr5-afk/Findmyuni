@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/ui-enhancements.css';
 import './index.css';
@@ -59,12 +60,14 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <Router {...routerOptions}>
       <AuthProvider>
         <ScrollAnimationProvider>
-          <HelmetProvider>
-            <Suspense fallback={<LoadingFallback />}>
-              <App />
-            </Suspense>
-            <ScrollToTop />
-          </HelmetProvider>
+          <LanguageProvider>
+            <HelmetProvider>
+              <Suspense fallback={<LoadingFallback />}>
+                <App />
+              </Suspense>
+              <ScrollToTop />
+            </HelmetProvider>
+          </LanguageProvider>
         </ScrollAnimationProvider>
       </AuthProvider>
     </Router>
