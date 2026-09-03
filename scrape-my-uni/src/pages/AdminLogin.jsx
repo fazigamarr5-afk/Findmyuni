@@ -43,9 +43,26 @@ const AdminLogin = () => {
           console.log('Admin user verified, redirecting to dashboard');
           navigate('/admin/dashboard', { replace: true });
         } else {
-          console.log('User is not an admin');
-          showToast('Unauthorized: Admin access required', 'error');
-          await logout();
+          // Check if admins table exists or is empty — auto-promote first user
+          const { count } = await supabase
+            .from('admins')
+            .select('id', { count: 'exact', head: true });
+          
+          if (count === 0) {
+            // No admins exist — auto-promote this user
+            await supabase.from('admins').insert({
+              user_id: currentUser.id,
+              email: currentUser.email.toLowerCase(),
+              name: currentUser.user_metadata?.display_name || 'Admin',
+            });
+            await supabase.from('users').update({ role: 'admin' }).eq('id', currentUser.id);
+            showToast('🎉 You have been promoted to Admin!', 'success');
+            navigate('/admin/dashboard', { replace: true });
+          } else {
+            console.log('User is not an admin');
+            showToast('Unauthorized: Admin access required. You need to be added to the admins table first.', 'error');
+            await logout();
+          }
         }
       } catch (err) {
         console.error('Error checking admin status:', err);
