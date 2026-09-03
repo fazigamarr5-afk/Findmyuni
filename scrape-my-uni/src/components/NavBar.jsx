@@ -74,6 +74,7 @@ const NavBar = () => {
     { text: 'Home', path: '/' },
     { text: 'Universities', path: '/universities' },
     { text: 'Deadlines', path: '/deadlines' },
+    { text: 'Blog', path: '/blog' },
     { text: 'Compare', path: '/compare' },
     { text: 'About', path: '/about' },
     { text: 'Contact', path: '/contact' }

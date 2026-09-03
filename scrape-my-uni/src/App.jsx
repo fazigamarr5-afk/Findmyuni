@@ -38,6 +38,8 @@ const AdminDashboard = lazy(() => import('./pages/AdminDashboard.jsx'));
 const ScrapeManagement = lazy(() => import('./pages/ScrapeManagement.jsx'));
 const UniversityCompare = lazy(() => import('./components/UniversityCompare.jsx'));
 const DeadlineCalendar = lazy(() => import('./pages/DeadlineCalendar.jsx'));
+const BlogList = lazy(() => import('./pages/BlogList.jsx'));
+const BlogPost = lazy(() => import('./pages/BlogPost.jsx'));
 const UIExamples = lazy(() => import('./pages/UIExamples.jsx'));
 
 // Lazy-load non-critical components
@@ -178,6 +180,8 @@ function App() {
                     <Route path="/universities/:id" element={<UniversityDetail />} />
                     <Route path="/compare" element={<UniversityCompare />} />
                     <Route path="/deadlines" element={<DeadlineCalendar />} />
+                    <Route path="/blog" element={<BlogList />} />
+                    <Route path="/blog/:slug" element={<BlogPost />} />
                     <Route path="/ui-examples" element={<UIExamples />} />
                     
                     {/* Protected Routes */}
