@@ -220,6 +220,13 @@ class UniversityApiService {
     }
   }
 
+  async compare(ids = []) {
+    if (ids.length < 2) throw new Error('At least 2 universities required');
+    const promises = ids.map(id => this.getUniversity(id));
+    const universities = await Promise.all(promises);
+    return { universities };
+  }
+
   async getPrograms() {
     try {
       const response = await api.get('/universities/programs');

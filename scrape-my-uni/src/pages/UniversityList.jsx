@@ -451,21 +451,16 @@ const UniversityList = () => {
       
       const beforeCount = results.length;
       results = results.filter(uni => {
-        // Check if university has programs
-        if (!uni.programs) {
+        if (!uni.programs || typeof uni.programs !== 'object') return false;
+        const p = uni.programs;
+        const hasBS = (p.BSPrograms && p.BSPrograms.length > 0) || (p.u && p.u.length > 0);
+        const hasMS = (p.MSPrograms && p.MSPrograms.length > 0) || (p.g && p.g.length > 0);
+        const hasPhD = (p.PhDPrograms && p.PhDPrograms.length > 0) || (p.d && p.d.length > 0);
+        return programFilters.some(f => {
+          if (f === 'bs' && hasBS) return true;
+          if (f === 'ms' && hasMS) return true;
+          if (f === 'phd' && hasPhD) return true;
           return false;
-        }
-        
-        // Get all program categories (BSPrograms, MSPrograms, etc.)
-        const programCategories = Object.keys(uni.programs);
-        
-        // Check if any program category matches our filters
-        const matches = programCategories.some(category => {
-          const categoryLower = category.toLowerCase();
-          return programFilters.some(filter => {
-            // Check if category contains the filter (e.g., "BSPrograms" contains "bs")
-            return categoryLower.includes(filter.toLowerCase());
-          });
         });
         
         // Debug output
@@ -485,7 +480,17 @@ const UniversityList = () => {
       results = results.filter(uni => {
         const name = (uni.name || '').toLowerCase();
         const description = (uni.description || '').toLowerCase();
-        return name.includes(queryLower) || description.includes(queryLower);
+        if (name.includes(queryLower) || description.includes(queryLower)) return true;
+        // Also search program names
+        if (uni.programs && typeof uni.programs === 'object') {
+          const allProgs = [
+            ...(uni.programs.BSPrograms || uni.programs.u || []),
+            ...(uni.programs.MSPrograms || uni.programs.g || []),
+            ...(uni.programs.PhDPrograms || uni.programs.d || []),
+          ];
+          return allProgs.some(p => typeof p === 'string' && p.toLowerCase().includes(queryLower));
+        }
+        return false;
       });
       
       console.log(`Text search filter: ${beforeCount} → ${results.length} universities`);

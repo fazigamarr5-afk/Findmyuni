@@ -36,6 +36,7 @@ import {
   Visibility as VisibilityIcon
 } from '@mui/icons-material';
 import { universityService } from '../services/api.service.js';
+import { supabase } from '../supabase';
 import { useToast } from '../context/ToastContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import './UniversityCompare.css'; // Import CSS file
@@ -50,7 +51,7 @@ const UniversityCompare = () => {
   const [selectedUniversities, setSelectedUniversities] = useState([]);
   const [comparisonData, setComparisonData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [searchValue, setSearchValue] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [loadingUniversities, setLoadingUniversities] = useState(true);
   const [error, setError] = useState('');
 
@@ -70,14 +71,12 @@ const UniversityCompare = () => {
     try {
       setLoadingUniversities(true);
       setError('');
-      
-      // Try fetching from API
-      const universities = await universityService.getAll();
-      
-      if (Array.isArray(universities) && universities.length > 0) {
-        setAllUniversities(universities);
+      const { data, error: dbError } = await supabase.from('universities').select('*').order('name');
+      if (dbError) throw dbError;
+      if (data && data.length > 0) {
+        setAllUniversities(data);
       } else {
-        throw new Error('Failed to load universities or empty data received');
+        throw new Error('No universities found');
       }
     } catch (error) {
       console.error('Error fetching universities:', error);
@@ -90,37 +89,16 @@ const UniversityCompare = () => {
 
   const compareUniversities = async () => {
     if (selectedUniversities.length < 2) return;
-
     try {
       setLoading(true);
       setError('');
-      
-      // Get detailed data for each selected university
-      const universityIds = selectedUniversities.map(uni => uni.id);
-      
-      // Use the compare API endpoint if available, otherwise fetch each university
-      try {
-        const response = await universityService.compare(universityIds);
-        
-        if (response && response.universities && Array.isArray(response.universities)) {
-          setComparisonData(response.universities);
-        } else {
-          throw new Error('Invalid response format from compare API');
-        }
-      } catch (apiError) {
-        console.error('API compare failed, fetching individually:', apiError);
-        
-        // Fallback to individual fetching if compare endpoint fails
-        const promises = selectedUniversities.map(uni => 
-          universityService.getUniversity(uni.id)
-        );
-        const universities = await Promise.all(promises);
-        setComparisonData(universities);
-      }
+      const ids = selectedUniversities.map(uni => uni.id);
+      const { data, error: dbError } = await supabase.from('universities').select('*').in('id', ids);
+      if (dbError) throw dbError;
+      setComparisonData(data || []);
     } catch (error) {
       console.error('Error comparing universities:', error);
-      setError('Failed to compare universities. Please try again.');
-      showToast('Failed to compare universities', 'error');
+      setError('Failed to compare universities.');
     } finally {
       setLoading(false);
     }
@@ -266,21 +244,23 @@ const UniversityCompare = () => {
         <Grid container spacing={2} alignItems="flex-start" sx={{ mb: 3 }}>
           <Grid item xs={12}>
             <Autocomplete
-              value={searchValue}
-              onChange={(event, newValue) => {
-                if (newValue) {
+              freeSolo
+              options={allUniversities.filter(u => !selectedUniversities.some(s => s.id === u.id) && (
+                !searchTerm || u.name.toLowerCase().includes(searchTerm.toLowerCase())
+              ))}
+              getOptionLabel={(option) => option.name || ''}
+              onInputChange={(_, v) => setSearchTerm(v)}
+              onChange={(_, newValue) => {
+                if (newValue && typeof newValue === 'object' && newValue.id) {
                   handleAddUniversity(newValue);
-                } else {
-                  setSearchValue(null);
+                  setSearchTerm('');
                 }
               }}
-              options={allUniversities}
-              getOptionLabel={(option) => option.name || ''}
               renderInput={(params) => (
                 <TextField
                   {...params}
                   label="Search & Select Universities to Compare"
-                  placeholder="Type university name to search and click to add to comparison"
+                  placeholder="Type university name to search"
                   variant="outlined"
                   fullWidth
                 />
@@ -466,6 +446,47 @@ const UniversityCompare = () => {
                           );
                         }
                         return <Typography variant="body2" color="text.secondary">No programs listed</Typography>;
+                      })()}
+                    </TableCell>
+                  ))}
+                </TableRow>
+
+                {/* Scholarships */}
+                <TableRow>
+                  <TableCell sx={{ bgcolor: isDarkMode ? 'grey.900' : 'grey.100', fontWeight: 'bold' }}>Scholarships</TableCell>
+                  {comparisonData.map((uni, index) => (
+                    <TableCell key={index}>
+                      {(() => {
+                        const sch = uni.scholarships;
+                        if (!sch) return <Typography variant="body2" color="text.secondary">N/A</Typography>;
+                        if (Array.isArray(sch) && sch.length > 0) {
+                          return sch.slice(0, 5).map((s, i) => <Chip key={i} label={typeof s === 'string' ? s : JSON.stringify(s)} size="small" variant="outlined" sx={{ m: 0.5 }} />);
+                        }
+                        if (typeof sch === 'object' && !Array.isArray(sch)) {
+                          const items = [];
+                          ['merit', 'need_based', 'government', 'international'].forEach(k => {
+                            if (sch[k] && Array.isArray(sch[k])) items.push(...sch[k].slice(0, 3));
+                          });
+                          return items.length > 0 ? items.slice(0, 6).map((s, i) => <Chip key={i} label={s} size="small" variant="outlined" sx={{ m: 0.5 }} />) : <Typography variant="body2" color="text.secondary">N/A</Typography>;
+                        }
+                        return <Typography variant="body2" color="text.secondary">N/A</Typography>;
+                      })()}
+                    </TableCell>
+                  ))}
+                </TableRow>
+
+                {/* Facilities */}
+                <TableRow>
+                  <TableCell sx={{ bgcolor: isDarkMode ? 'grey.900' : 'grey.100', fontWeight: 'bold' }}>Facilities</TableCell>
+                  {comparisonData.map((uni, index) => (
+                    <TableCell key={index}>
+                      {(() => {
+                        const fac = uni.facilities;
+                        if (!fac) return <Typography variant="body2" color="text.secondary">N/A</Typography>;
+                        let list = [];
+                        if (Array.isArray(fac)) list = fac;
+                        else if (typeof fac === 'object') Object.values(fac).forEach(v => { if (Array.isArray(v)) list.push(...v); else if (typeof v === 'string') list.push(v); });
+                        return list.length > 0 ? list.map((f, i) => <Chip key={i} label={f} size="small" variant="outlined" sx={{ m: 0.5 }} />) : <Typography variant="body2" color="text.secondary">N/A</Typography>;
                       })()}
                     </TableCell>
                   ))}
