@@ -375,9 +375,78 @@ class ApplicationService {
     const { error } = await supabase.from('applications').update(data).eq('id', id);
     if (error) throw error;
   }
+
+  // Alias methods used by ApplicationTracker component
+  async update(id, data) { return this.updateApplication(id, data); }
+  async delete(id) {
+    const { error } = await supabase.from('applications').delete().eq('id', id);
+    if (error) throw error;
+  }
+  async uploadDocument(applicationId, file) {
+    // Store document metadata in the application record
+    const { data: app } = await supabase.from('applications').select('documents').eq('id', applicationId).single();
+    const docs = app?.documents || [];
+    docs.push({ name: file.name, type: file.type, size: file.size, uploadedAt: new Date().toISOString() });
+    const { error } = await supabase.from('applications').update({ documents: docs }).eq('id', applicationId);
+    if (error) throw error;
+  }
 }
 
 export const applicationService = new ApplicationService();
+
+// ========== FAVORITES SERVICE ==========
+
+class FavoritesService {
+  async getFavorites() {
+    try {
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from('favorites')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching favorites:', error);
+      return [];
+    }
+  }
+
+  async addFavorite(universityId) {
+    const user = (await supabase.auth.getUser()).data.user;
+    if (!user) throw new Error('Must be logged in');
+    const { error } = await supabase.from('favorites').insert({
+      user_id: user.id,
+      university_id: universityId,
+    });
+    if (error && error.code !== '23505') throw error; // ignore duplicate
+  }
+
+  async removeFavorite(universityId) {
+    const user = (await supabase.auth.getUser()).data.user;
+    if (!user) return;
+    const { error } = await supabase.from('favorites')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('university_id', universityId);
+    if (error) throw error;
+  }
+
+  async isFavorited(universityId) {
+    const user = (await supabase.auth.getUser()).data.user;
+    if (!user) return false;
+    const { data } = await supabase.from('favorites')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('university_id', universityId)
+      .maybeSingle();
+    return !!data;
+  }
+}
+
+export const favoritesService = new FavoritesService();
 
 // ========== CONNECTION STATUS ==========
 

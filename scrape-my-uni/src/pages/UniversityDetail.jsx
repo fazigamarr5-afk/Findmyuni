@@ -2,9 +2,9 @@ import { useState, useEffect, useMemo } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { Helmet } from "react-helmet-async"
 import { useAuth } from "../context/AuthContext"
-import { universityService } from "../services/api.service"
-import { Chip, Button, Tab, Tabs, Box, Tooltip } from "@mui/material"
-import { MapOutlined, SchoolOutlined, CalendarMonthOutlined, AccountBalanceOutlined, ChevronRight, OpenInNew, StarOutline, WorkspacePremiumOutlined, HotelOutlined, MenuBookOutlined } from "@mui/icons-material"
+import { universityService, favoritesService } from "../services/api.service"
+import { Chip, Button, Tab, Tabs, Box, Tooltip, IconButton } from "@mui/material"
+import { MapOutlined, SchoolOutlined, CalendarMonthOutlined, AccountBalanceOutlined, ChevronRight, OpenInNew, StarOutline, StarBorderOutlined, WorkspacePremiumOutlined, HotelOutlined, MenuBookOutlined } from "@mui/icons-material"
 
 const UniversityDetail = () => {
   const { id } = useParams()
@@ -14,6 +14,7 @@ const UniversityDetail = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [activeTab, setActiveTab] = useState(0)
+  const [isFavorited, setIsFavorited] = useState(false)
 
   useEffect(() => {
     if (id) fetchUniversityDetails()
@@ -26,6 +27,11 @@ const UniversityDetail = () => {
       const data = await universityService.getUniversity(id)
       if (!data) throw new Error("University not found")
       setUniversity(data)
+      // Check if favorited
+      if (currentUser) {
+        const fav = await favoritesService.isFavorited(id)
+        setIsFavorited(fav)
+      }
     } catch (err) {
       setError("Failed to load university details")
       console.error(err)
@@ -76,6 +82,24 @@ const UniversityDetail = () => {
     }
     return []
   }, [university?.facilities])
+
+  const handleFavoriteClick = async () => {
+    if (!currentUser) {
+      navigate("/login", { state: { from: `/universities/${id}` } })
+      return
+    }
+    try {
+      if (isFavorited) {
+        await favoritesService.removeFavorite(id)
+        setIsFavorited(false)
+      } else {
+        await favoritesService.addFavorite(id)
+        setIsFavorited(true)
+      }
+    } catch (e) {
+      console.error("Favorite error:", e)
+    }
+  }
 
   const handleApplyClick = () => {
     if (university?.apply_link) {
@@ -167,7 +191,14 @@ const UniversityDetail = () => {
               </div>
             </div>
             <div className="flex-1">
-              <h1 className="text-2xl md:text-4xl font-bold mb-3 leading-tight">{university.name}</h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl md:text-4xl font-bold mb-3 leading-tight flex-1">{university.name}</h1>
+                <Tooltip title={isFavorited ? "Remove from favorites" : "Add to favorites"}>
+                  <IconButton onClick={handleFavoriteClick} sx={{ color: isFavorited ? "#f59e0b" : "rgba(255,255,255,0.7)", mb: 2 }}>
+                    {isFavorited ? <StarOutline sx={{ fontSize: 32 }} /> : <StarBorderOutlined sx={{ fontSize: 32 }} />}
+                  </IconButton>
+                </Tooltip>
+              </div>
               <div className="flex flex-wrap gap-3 mb-4">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm bg-white/20 backdrop-blur-sm">
                   <MapOutlined fontSize="small" /> {university.location || bi.Location || "Pakistan"}
