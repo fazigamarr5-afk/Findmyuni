@@ -1,10 +1,9 @@
-"use client"
-
 import { useState, useEffect, useMemo } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import { universityService } from "../services/api.service"
-import { Chip } from "@mui/material"
+import { Chip, Button, Tab, Tabs, Box, Tooltip } from "@mui/material"
+import { MapOutlined, SchoolOutlined, CalendarMonthOutlined, AccountBalanceOutlined, ChevronRight, OpenInNew, StarOutline, WorkspacePremiumOutlined, HotelOutlined, MenuBookOutlined } from "@mui/icons-material"
 
 const UniversityDetail = () => {
   const { id } = useParams()
@@ -13,40 +12,34 @@ const UniversityDetail = () => {
   const [university, setUniversity] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [activeTab, setActiveTab] = useState(0)
 
   useEffect(() => {
-    if (id) {
-      fetchUniversityDetails()
-    } else {
-      setError("Invalid university ID")
-      setLoading(false)
-    }
+    if (id) fetchUniversityDetails()
+    else { setError("Invalid university ID"); setLoading(false) }
   }, [id])
 
   const fetchUniversityDetails = async () => {
     try {
       setLoading(true)
       const data = await universityService.getUniversity(id)
-      if (!data) {
-        throw new Error("University not found")
-      }
+      if (!data) throw new Error("University not found")
       setUniversity(data)
     } catch (err) {
-      setError("Failed to fetch university details: " + (err.message || "Unknown error"))
-      console.error("Error fetching university:", err)
+      setError("Failed to load university details")
+      console.error(err)
     } finally {
       setLoading(false)
     }
   }
 
-  // Pre-compute programs, scholarships, facilities to avoid IIFE in JSX
   const programsData = useMemo(() => {
     if (!university?.programs || typeof university.programs !== "object") return null
     const p = university.programs
     const bs = p.BSPrograms || p.u || []
     const ms = p.MSPrograms || p.g || []
     const phd = p.PhDPrograms || p.d || []
-    if (bs.length === 0 && ms.length === 0 && phd.length === 0) return null
+    if (!bs.length && !ms.length && !phd.length) return null
     return { bs, ms, phd }
   }, [university?.programs])
 
@@ -55,13 +48,13 @@ const UniversityDetail = () => {
     const sch = university.scholarships
     if (Array.isArray(sch) && sch.length > 0) return { type: "list", items: sch }
     if (!Array.isArray(sch) && typeof sch === "object") {
-      const categories = [
-        { key: "merit", label: "Merit-Based Scholarships", color: "blue" },
-        { key: "need_based", label: "Need-Based Scholarships", color: "green" },
-        { key: "government", label: "Government Scholarships", color: "purple" },
-        { key: "international", label: "International Scholarships", color: "orange" },
+      const cats = [
+        { key: "merit", label: "Merit-Based", color: "#16a34a", bg: "#f0fdf4", icon: "⭐" },
+        { key: "need_based", label: "Need-Based", color: "#2563eb", bg: "#eff6ff", icon: "❤️" },
+        { key: "government", label: "Government", color: "#9333ea", bg: "#faf5ff", icon: "🏛️" },
+        { key: "international", label: "International", color: "#ea580c", bg: "#fff7ed", icon: "🌍" },
       ]
-      const active = categories.filter(c => sch[c.key] && sch[c.key].length > 0)
+      const active = cats.filter(c => sch[c.key] && sch[c.key].length > 0)
       if (active.length === 0) return null
       return { type: "categorized", categories: active, data: sch }
     }
@@ -84,225 +77,312 @@ const UniversityDetail = () => {
   }, [university?.facilities])
 
   const handleApplyClick = () => {
-    if (university && university.apply_link) {
-      window.open(university.apply_link, '_blank');
+    if (university?.apply_link) {
+      window.open(university.apply_link, "_blank")
+    } else if (currentUser) {
+      navigate(`/apply/${id}`)
     } else {
-      if (currentUser) {
-        navigate(`/apply/${id}`);
-      } else {
-        navigate("/login", { state: { from: `/universities/${id}` } });
-      }
+      navigate("/login", { state: { from: `/universities/${id}` } })
     }
   }
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "Contact university"
-    try {
-      return new Date(dateString).toLocaleDateString("en-US", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      })
-    } catch (e) {
-      return dateString
-    }
+  const formatDate = (d) => {
+    if (!d) return null
+    try { return new Date(d).toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" }) } catch { return d }
   }
+
+  const getDeadlineInfo = () => {
+    const raw = university?.deadline || university?.basic_info?.["Deadline to Apply"]
+    if (!raw) return null
+    try {
+      const date = new Date(raw)
+      const now = new Date()
+      const diff = Math.ceil((date - now) / (1000 * 60 * 60 * 24))
+      return { date, formatted: formatDate(raw), daysLeft: diff, isPast: diff < 0, isSoon: diff >= 0 && diff <= 14 }
+    } catch { return { formatted: raw, daysLeft: null } }
+  }
+
+  const getInitials = (name) => {
+    return name.split(" ").filter(w => w.length > 2).slice(0, 2).map(w => w[0]).join("").toUpperCase()
+  }
+
+  const colors = ["#16a34a", "#2563eb", "#9333ea", "#ea580c", "#dc2626", "#0891b2"]
+  const avatarColor = colors[Math.abs(id?.charCodeAt(0) || 0) % colors.length]
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-500">Loading university details...</p>
+        </div>
       </div>
     )
   }
 
-  if (error) {
+  if (error || !university) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <div className="text-red-500 mb-4">{error}</div>
-        <button
-          onClick={() => navigate("/universities")}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Back to Universities
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
+        <div className="text-6xl mb-4">🏫</div>
+        <h2 className="text-xl font-semibold text-gray-700 mb-2">{error || "University not found"}</h2>
+        <button onClick={() => navigate("/universities")} className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+          Browse All Universities
         </button>
       </div>
     )
   }
 
-  if (!university) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <div className="text-gray-500 mb-4">University not found</div>
-        <button
-          onClick={() => navigate("/universities")}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Back to Universities
-        </button>
-      </div>
-    )
-  }
+  const deadline = getDeadlineInfo()
+  const bi = university.basic_info || {}
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="lg:container px-4 w-full lg:grid lg:grid-cols-12">
-        <div className="University_Data lg:col-span-9 mt-12 flex flex-col gap-8 mb-12">
-          <div className="text-center">
-            <h1 className="max-sm:text-base sm:text-2xl md:text-3xl lg:text-4xl font-bold text-primary mb-2">
-              {university.name}
-            </h1>
-            {university.admissionOpen && (
-              <Chip
-                label="Admission Open"
-                color="success"
-                size="medium"
-                sx={{ fontWeight: 'medium' }}
-              />
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Banner */}
+      <div className="bg-gradient-to-r from-green-700 via-green-600 to-emerald-500 text-white">
+        <div className="max-w-6xl mx-auto px-4 py-10 md:py-14">
+          <div className="flex flex-col md:flex-row items-start gap-6">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center text-3xl md:text-4xl font-bold shadow-lg flex-shrink-0" style={{ backgroundColor: "rgba(255,255,255,0.2)", backdropFilter: "blur(10px)" }}>
+              {getInitials(university.name)}
+            </div>
+            <div className="flex-1">
+              <h1 className="text-2xl md:text-4xl font-bold mb-3 leading-tight">{university.name}</h1>
+              <div className="flex flex-wrap gap-3 mb-4">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm bg-white/20 backdrop-blur-sm">
+                  <MapOutlined fontSize="small" /> {university.location || bi.Location || "Pakistan"}
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm bg-white/20 backdrop-blur-sm">
+                  <AccountBalanceOutlined fontSize="small" /> {university.sector || bi.Sector || "University"}
+                </span>
+                {university.admissionOpen && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm bg-green-400 text-green-900 font-semibold">
+                    ● Admissions Open
+                  </span>
+                )}
+              </div>
+              {/* Quick Stats */}
+              <div className="flex flex-wrap gap-4 text-sm text-green-100">
+                {bi.student_count && <span>👨‍🎓 {bi.student_count} Students</span>}
+                {bi.QS_World_Rank && <span>🏆 QS Rank #{bi.QS_World_Rank}</span>}
+                {bi.Pakistan_Rank && <span>🇵🇰 #${bi.Pakistan_Rank} in Pakistan</span>}
+                {programsData && <span>📚 {programsData.bs.length + programsData.ms.length + programsData.phd.length} Programs</span>}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Deadline Banner */}
+      {deadline && (
+        <div className={`px-4 py-3 ${deadline.isPast ? "bg-red-50 border-b border-red-200" : deadline.isSoon ? "bg-amber-50 border-b border-amber-200" : "bg-blue-50 border-b border-blue-200"}`}>
+          <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <CalendarMonthOutlined className={deadline.isPast ? "text-red-500" : deadline.isSoon ? "text-amber-500" : "text-blue-500"} />
+              <span className="font-medium text-gray-800">Application Deadline: {deadline.formatted}</span>
+            </div>
+            {deadline.daysLeft !== null && (
+              <span className={`px-3 py-1 rounded-full text-sm font-semibold ${deadline.isPast ? "bg-red-100 text-red-700" : deadline.isSoon ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"}`}>
+                {deadline.isPast ? "Deadline Passed" : `${deadline.daysLeft} days left`}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Main Content */}
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Main Content */}
+          <div className="lg:col-span-2 space-y-8">
+
+            {/* About */}
+            {university.description && (
+              <section className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h2 className="text-xl font-bold text-gray-800 mb-3 flex items-center gap-2">
+                  <SchoolOutlined className="text-green-600" /> About {university.name}
+                </h2>
+                <p className="text-gray-600 leading-relaxed">{university.description}</p>
+              </section>
+            )}
+
+            {/* Programs */}
+            {programsData && (
+              <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="px-6 pt-5 pb-0">
+                  <h2 className="text-xl font-bold text-gray-800 mb-1 flex items-center gap-2">
+                    <MenuBookOutlined className="text-green-600" /> Programs Offered
+                  </h2>
+                  <p className="text-sm text-gray-500 mb-3">{programsData.bs.length + programsData.ms.length + programsData.phd.length} programs across all levels</p>
+                </div>
+                <Tabs
+                  value={activeTab}
+                  onChange={(_, v) => setActiveTab(v)}
+                  sx={{ px: 2, borderBottom: 1, borderColor: "divider", minHeight: 44 }}
+                >
+                  <Tab label={`BS (${programsData.bs.length})`} sx={{ minHeight: 44, textTransform: "none", fontWeight: 600 }} />
+                  <Tab label={`MS (${programsData.ms.length})`} sx={{ minHeight: 44, textTransform: "none", fontWeight: 600 }} />
+                  <Tab label={`PhD (${programsData.phd.length})`} sx={{ minHeight: 44, textTransform: "none", fontWeight: 600 }} />
+                </Tabs>
+                <Box sx={{ p: 3 }}>
+                  {activeTab === 0 && programsData.bs.length > 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {programsData.bs.map((p, i) => (
+                        <div key={i} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50/80 hover:bg-blue-100 transition">
+                          <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0"></div>
+                          <span className="text-sm text-gray-700">{typeof p === "string" ? p : p.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {activeTab === 1 && programsData.ms.length > 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {programsData.ms.map((p, i) => (
+                        <div key={i} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-green-50/80 hover:bg-green-100 transition">
+                          <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></div>
+                          <span className="text-sm text-gray-700">{typeof p === "string" ? p : p.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {activeTab === 2 && programsData.phd.length > 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {programsData.phd.map((p, i) => (
+                        <div key={i} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-purple-50/80 hover:bg-purple-100 transition">
+                          <div className="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0"></div>
+                          <span className="text-sm text-gray-700">{typeof p === "string" ? p : p.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {((activeTab === 0 && !programsData.bs.length) || (activeTab === 1 && !programsData.ms.length) || (activeTab === 2 && !programsData.phd.length)) && (
+                    <p className="text-gray-400 text-center py-8">No programs at this level</p>
+                  )}
+                </Box>
+              </section>
+            )}
+
+            {/* Scholarships */}
+            {scholarshipsData && (
+              <section className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <WorkspacePremiumOutlined className="text-green-600" /> Scholarships
+                </h2>
+                {scholarshipsData.type === "list" && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {scholarshipsData.items.map((s, i) => (
+                      <div key={i} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-50 hover:bg-amber-100 transition">
+                        <span className="text-lg">🎓</span>
+                        <span className="text-sm text-gray-700">{typeof s === "string" ? s : s.name || JSON.stringify(s)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {scholarshipsData.type === "categorized" && (
+                  <div className="space-y-5">
+                    {scholarshipsData.categories.map(({ key, label, color, bg, icon }) => (
+                      <div key={key}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-lg">{icon}</span>
+                          <h3 className="font-semibold text-sm" style={{ color }}>{label}</h3>
+                          <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: bg, color }}>{scholarshipsData.data[key].length}</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {scholarshipsData.data[key].map((s, i) => (
+                            <div key={i} className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-gray-100 hover:border-gray-200 transition text-sm text-gray-700">
+                              <ChevronRight fontSize="small" style={{ color }} />
+                              {s}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* Facilities */}
+            {facilitiesList.length > 0 && (
+              <section className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <HotelOutlined className="text-green-600" /> Campus Facilities
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {facilitiesList.map((f, i) => (
+                    <span key={i} className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-600 hover:bg-green-50 hover:border-green-200 transition">
+                      {f}
+                    </span>
+                  ))}
+                </div>
+              </section>
             )}
           </div>
 
-          <div className="w-[320px] sm:w-[600px] md:w-[650px] xl:w-[800px] border mx-auto">
-            <table className="min-w-full border-collapse border border-primary text-primary font-semibold">
-              <tbody>
-                <tr>
-                  <td className="px-4 max-sm:py-2 md:py-3 xl:py-4 border border-primary text-center max-sm:text-xs md:text-base lg:text-lg">Location</td>
-                  <td className="px-4 max-sm:py-2 md:py-3 xl:py-4 border border-primary text-center max-sm:text-xs md:text-base lg:text-lg">
-                    {university.location || (university.basic_info && university.basic_info.Location) || "Not specified"}
-                    {university.province ? `, ${university.province}` : ""}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-4 max-sm:py-2 md:py-3 xl:py-4 border border-primary text-center max-sm:text-xs md:text-base lg:text-lg">Sector</td>
-                  <td className="px-4 max-sm:py-2 md:py-3 xl:py-4 border border-primary text-center max-sm:text-xs md:text-base lg:text-lg">
-                    {university.sector || (university.basic_info && university.basic_info.Sector) || "Not specified"}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-4 max-sm:py-2 md:py-3 xl:py-4 border border-primary text-center max-sm:text-xs md:text-base lg:text-lg">Affiliation</td>
-                  <td className="px-4 max-sm:py-2 md:py-3 xl:py-4 border border-primary text-center max-sm:text-xs md:text-base lg:text-lg">
-                    {university.affiliation || (university.basic_info && university.basic_info.Affiliation) || "Not specified"}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-4 max-sm:py-2 md:py-3 xl:py-4 border border-primary text-center max-sm:text-xs md:text-base lg:text-lg">Deadline to Apply</td>
-                  <td className="px-4 max-sm:py-2 md:py-3 xl:py-4 border border-primary text-center max-sm:text-xs md:text-base lg:text-lg text-red-600 font-semibold">
-                    {formatDate(university.deadline || (university.basic_info && university.basic_info["Deadline to Apply"]))}
-                  </td>
-                </tr>
-                {university.ranking && (
-                  <tr>
-                    <td className="px-4 max-sm:py-2 md:py-3 xl:py-4 border border-gray-400 text-center max-sm:text-xs md:text-base lg:text-lg">Ranking</td>
-                    <td className="px-4 max-sm:py-2 md:py-3 xl:py-4 border border-gray-400 text-center max-sm:text-xs md:text-base lg:text-lg">{university.ranking}</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* University Description */}
-          {university.description && (
-            <div className="mt-8 w-[320px] sm:w-[600px] md:w-[650px] xl:w-[800px] mx-auto">
-              <h2 className="text-xl font-bold mb-4">About {university.name}</h2>
-              <p className="text-gray-700">{university.description}</p>
-            </div>
-          )}
-
-          {/* Programs Section */}
-          {programsData && (
-            <div className="mt-8 w-[320px] sm:w-[600px] md:w-[650px] xl:w-[800px] mx-auto">
-              <h2 className="text-xl font-bold mb-4">Available Programs</h2>
-              {programsData.bs.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold mb-3 text-blue-700">BS / Undergraduate Programs</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {programsData.bs.map((program, index) => (
-                      <div key={index} className="p-3 border rounded-lg hover:bg-blue-50">
-                        <h4 className="font-medium text-sm">{typeof program === "string" ? program : program.name || JSON.stringify(program)}</h4>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+          {/* Right Sidebar */}
+          <div className="space-y-6">
+            {/* Apply Card */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 sticky top-24">
+              <button
+                onClick={handleApplyClick}
+                className="w-full py-3.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-green-200 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+              >
+                {university.apply_link ? "Apply Now →" : "Start Application →"}
+              </button>
+              {university.apply_link && (
+                <a href={university.apply_link} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1 mt-3 text-sm text-blue-600 hover:underline">
+                  <OpenInNew fontSize="small" /> Visit Official Website
+                </a>
               )}
-              {programsData.ms.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold mb-3 text-green-700">MS / Graduate Programs</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {programsData.ms.map((program, index) => (
-                      <div key={index} className="p-3 border rounded-lg hover:bg-green-50">
-                        <h4 className="font-medium text-sm">{typeof program === "string" ? program : program.name || JSON.stringify(program)}</h4>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {programsData.phd.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold mb-3 text-purple-700">PhD / Doctoral Programs</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {programsData.phd.map((program, index) => (
-                      <div key={index} className="p-3 border rounded-lg hover:bg-purple-50">
-                        <h4 className="font-medium text-sm">{typeof program === "string" ? program : program.name || JSON.stringify(program)}</h4>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
 
-          {/* Scholarships Section */}
-          {scholarshipsData && (
-            <div className="mt-8 w-[320px] sm:w-[600px] md:w-[650px] xl:w-[800px] mx-auto">
-              <h2 className="text-xl font-bold mb-4">Scholarships</h2>
-              {scholarshipsData.type === "list" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {scholarshipsData.items.map((s, i) => (
-                    <div key={i} className="p-3 border rounded-lg bg-yellow-50">
-                      <span className="font-medium text-sm">{typeof s === "string" ? s : JSON.stringify(s)}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {scholarshipsData.type === "categorized" && scholarshipsData.categories.map(({ key, label, color }) => (
-                <div key={key} className="mb-4">
-                  <h3 className={`text-lg font-semibold mb-2`}>{label}</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {scholarshipsData.data[key].map((s, i) => (
-                      <div key={i} className="p-2 border rounded bg-gray-50 text-sm">{s}</div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Facilities Section */}
-          {facilitiesList.length > 0 && (
-            <div className="mt-8 w-[320px] sm:w-[600px] md:w-[650px] xl:w-[800px] mx-auto">
-              <h2 className="text-xl font-bold mb-4">Facilities</h2>
-              <div className="flex flex-wrap gap-2">
-                {facilitiesList.map((f, i) => (
-                  <span key={i} className="px-3 py-1 bg-gray-100 border rounded-full text-sm">{f}</span>
-                ))}
+              {/* Info Table */}
+              <div className="mt-6 space-y-3">
+                <InfoRow icon={<MapOutlined />} label="Location" value={university.location || bi.Location || "Pakistan"} />
+                <InfoRow icon={<AccountBalanceOutlined />} label="Sector" value={university.sector || bi.Sector || "N/A"} />
+                {bi.Province && <InfoRow icon={<MapOutlined />} label="Province" value={bi.Province} />}
+                {bi.Contact && <InfoRow icon={<span>📧</span>} label="Contact" value={bi.Contact} />}
+                {bi.admission_fee && <InfoRow icon={<span>💰</span>} label="Admission Fee" value={bi.admission_fee} />}
+                {bi.student_count && <InfoRow icon={<span>👨‍🎓</span>} label="Students" value={bi.student_count} />}
+                {bi.undergraduate_per_semester && <InfoRow icon={<span>📋</span>} label="UG/Semester" value={bi.undergraduate_per_semester} />}
+                {bi.graduate_per_semester && <InfoRow icon={<span>📋</span>} label="Grad/Semester" value={bi.graduate_per_semester} />}
               </div>
-            </div>
-          )}
 
-          {/* Apply Button */}
-          <div className="mt-8 w-[320px] sm:w-[600px] md:w-[650px] xl:w-[800px] mx-auto text-center">
-            <button
-              onClick={handleApplyClick}
-              className="px-8 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-bold"
-            >
-              Apply Now
-            </button>
+              {/* Quick Links */}
+              {(university.url || university.apply_link) && (
+                <div className="mt-6 pt-4 border-t border-gray-100 space-y-2">
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Quick Links</h3>
+                  {university.url && (
+                    <a href={university.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gray-50 hover:bg-green-50 text-sm text-gray-700 transition">
+                      <OpenInNew fontSize="small" /> Visit Website
+                    </a>
+                  )}
+                  {university.apply_link && (
+                    <a href={university.apply_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gray-50 hover:bg-green-50 text-sm text-gray-700 transition">
+                      <ChevronRight fontSize="small" /> Apply Online
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-
-        {/* Sidebar */}
-        <div className="lg:col-span-3 mt-12"></div>
       </div>
+
+      {/* Breadcrumb Back */}
+      <div className="max-w-6xl mx-auto px-4 pb-8">
+        <button onClick={() => navigate("/universities")} className="flex items-center gap-1 text-sm text-green-600 hover:text-green-700 transition">
+          ← Back to All Universities
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function InfoRow({ icon, label, value }) {
+  return (
+    <div className="flex items-center justify-between py-2 px-1">
+      <div className="flex items-center gap-2 text-gray-500 text-sm">
+        <span className="text-gray-400">{icon}</span> {label}
+      </div>
+      <span className="text-sm font-medium text-gray-800 text-right max-w-[60%]">{value}</span>
     </div>
   )
 }
