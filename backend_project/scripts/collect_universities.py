@@ -20,7 +20,7 @@ import logging
 from datetime import datetime
 
 # Add backend to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'backend_project'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -315,103 +315,103 @@ MASTER_UNIVERSITIES = [
     {"name": "Aga Khan University (AKU)", "city": "Karachi", "province": "Sindh", "sector": "Private", "established": 1983, "website": "aku.edu", "type": "Research",
      "description": "AKU is internationally recognized for its medical school and research.",
      "programs": {"BSPrograms": ["Medicine", "Nursing"], "MSPrograms": ["Biomedical Sciences", "Epidemiology & Biostatistics", "Health Policy & Management", "Education"], "PhDPrograms": ["Biomedical Sciences"]},
-     "facilities": {"hostel": true, "library": true, "lab": true, "sports": true, "wifi": true, "medical": true, "hospital": true}},
+     "facilities": {"hostel": True, "library": True, "lab": True, "sports": True, "wifi": True, "medical": True, "hospital": True}},
 
     {"name": "SZABIST - Shaheed Zulfikar Ali Bhutto Institute", "city": "Karachi", "province": "Sindh", "sector": "Private", "established": 1995, "website": "szabist.edu.pk", "type": "Research",
      "description": "SZABIST offers programs in CS, management, media, and law.",
      "programs": {"BSPrograms": ["Computer Science", "Software Engineering", "Information Technology", "Data Science", "Business Administration", "Media Sciences", "Law", "Social Sciences"], "MSPrograms": ["Computer Science", "Business Administration", "Media Sciences"], "PhDPrograms": ["Computer Science"]},
-     "facilities": {"library": true, "lab": true, "sports": true, "wifi": true, "cafeteria": true}},
+     "facilities": {"library": True, "lab": True, "sports": True, "wifi": True, "cafeteria": True}},
 
     {"name": "Virtual University of Pakistan", "city": "Lahore", "province": "Punjab", "sector": "Public", "established": 2002, "website": "vu.edu.pk", "type": "Distance Learning",
      "description": "Virtual University focuses on distance and online education.",
      "programs": {"BSPrograms": ["Computer Science", "Software Engineering", "Information Technology", "Business Administration", "Commerce", "Banking & Finance", "Media Studies", "Psychology", "Education"], "MSPrograms": ["Computer Science", "Business Administration"], "PhDPrograms": ["Computer Science"]},
-     "facilities": {"library": true, "wifi": true}},
+     "facilities": {"library": True, "wifi": True}},
 
     {"name": "Hamdard University Karachi", "city": "Karachi", "province": "Sindh", "sector": "Private", "established": 1991, "website": "hamdard.edu.pk", "type": "Comprehensive",
      "description": "Hamdard University offers diverse programs across multiple campuses.",
      "programs": {"BSPrograms": ["Computer Science", "Software Engineering", "Electrical Engineering", "Civil Engineering", "Business Administration", "Pharmacy", "Medicine", "Dentistry", "Law", "Education"], "MSPrograms": ["Computer Science", "Business Administration", "Pharmacy"]},
-     "facilities": {"hostel": true, "library": true, "lab": true, "sports": true, "wifi": true, "cafeteria": true}},
+     "facilities": {"hostel": True, "library": True, "lab": True, "sports": True, "wifi": True, "cafeteria": True}},
 
     {"name": "Iqra University Islamabad", "city": "Islamabad", "province": "Islamabad", "sector": "Private", "established": 2000, "website": "iu.edu.pk", "type": "Comprehensive",
      "description": "Iqra University offers programs in CS, business, and media.",
      "programs": {"BSPrograms": ["Computer Science", "Software Engineering", "Information Technology", "Data Science", "Business Administration", "Media Studies", "Fashion Design", "Interior Design"], "MSPrograms": ["Computer Science", "Business Administration"]},
-     "facilities": {"library": true, "lab": true, "wifi": true, "cafeteria": true}},
+     "facilities": {"library": True, "lab": True, "wifi": True, "cafeteria": True}},
 
     {"name": "Riphah International University", "city": "Islamabad", "province": "Islamabad", "sector": "Private", "established": 2002, "website": "riphah.edu.pk", "type": "Comprehensive",
      "description": "Riphah University has multiple campuses across Pakistan.",
      "programs": {"BSPrograms": ["Computer Science", "Software Engineering", "Information Technology", "Electrical Engineering", "Civil Engineering", "Business Administration", "Psychology", "Education", "Media Studies", "Pharmacy"], "MSPrograms": ["Computer Science", "Business Administration", "Education"], "PhDPrograms": ["Computer Science"]},
-     "facilities": {"hostel": true, "library": true, "lab": true, "sports": true, "wifi": true, "cafeteria": true}},
+     "facilities": {"hostel": True, "library": True, "lab": True, "sports": True, "wifi": True, "cafeteria": True}},
 
     {"name": "Lahore Leads University", "city": "Lahore", "province": "Punjab", "sector": "Private", "established": 2011, "website": "lhrleads.edu.pk", "type": "Comprehensive",
      "description": "Lahore Leads University offers diverse programs.",
      "programs": {"BSPrograms": ["Computer Science", "Software Engineering", "Business Administration", "Commerce", "English", "Media Studies", "Education", "Psychology", "Architecture"], "MSPrograms": ["Computer Science", "Business Administration"]},
-     "facilities": {"library": true, "lab": true, "wifi": true, "cafeteria": true}},
+     "facilities": {"library": True, "lab": True, "wifi": True, "cafeteria": True}},
 
     {"name": "Capital University of Science & Technology (CUST) Islamabad", "city": "Islamabad", "province": "Islamabad", "sector": "Private", "established": 1998, "website": "cust.edu.pk", "type": "Engineering",
      "description": "CUST offers engineering and technology programs.",
      "programs": {"BSPrograms": ["Computer Science", "Software Engineering", "Electrical Engineering", "Civil Engineering", "Mechanical Engineering", "Business Administration"], "MSPrograms": ["Computer Science", "Electrical Engineering"]},
-     "facilities": {"hostel": true, "library": true, "lab": true, "sports": true, "wifi": true}},
+     "facilities": {"hostel": True, "library": True, "lab": True, "sports": True, "wifi": True}},
 
     {"name": "Foundation University (FUI) Rawalpindi", "city": "Rawalpindi", "province": "Punjab", "sector": "Private", "established": 2002, "website": "fui.edu.pk", "type": "Comprehensive",
      "description": "Foundation University is sponsored by the Fauji Foundation.",
      "programs": {"BSPrograms": ["Computer Science", "Software Engineering", "Electrical Engineering", "Civil Engineering", "Business Administration", "Psychology", "Dentistry", "Nursing"], "MSPrograms": ["Computer Science", "Business Administration"]},
-     "facilities": {"hostel": true, "library": true, "lab": true, "sports": true, "wifi": true}},
+     "facilities": {"hostel": True, "library": True, "lab": True, "sports": True, "wifi": True}},
 
     {"name": "University of Management & Technology (UMT) Lahore", "city": "Lahore", "province": "Punjab", "sector": "Private", "established": 1990, "website": "umt.edu.pk", "type": "Comprehensive",
      "description": "UMT is a leading private university in Lahore.",
      "programs": {"BSPrograms": ["Computer Science", "Software Engineering", "Information Technology", "Data Science", "Electrical Engineering", "Civil Engineering", "Business Administration", "Commerce", "Education", "Media Studies", "Fashion Design", "Pharmacy", "Psychology"], "MSPrograms": ["Computer Science", "Business Administration", "Education"], "PhDPrograms": ["Computer Science", "Business Administration"]},
-     "facilities": {"hostel": true, "library": true, "lab": true, "sports": true, "wifi": true, "cafeteria": true}},
+     "facilities": {"hostel": True, "library": True, "lab": True, "sports": True, "wifi": True, "cafeteria": True}},
 
     {"name": "Punjab Institute of Computer Science (PICS) Lahore", "city": "Lahore", "province": "Punjab", "sector": "Private", "established": 1987, "website": "pics.edu.pk", "type": "Technology",
      "description": "PICS is one of the oldest IT training institutions in Pakistan.",
      "programs": {"BSPrograms": ["Computer Science", "Software Engineering", "Information Technology", "Business Administration"], "MSPrograms": ["Computer Science"]},
-     "facilities": {"library": true, "lab": true, "wifi": true}},
+     "facilities": {"library": True, "lab": True, "wifi": True}},
 
     {"name": "Preston University Karachi", "city": "Karachi", "province": "Sindh", "sector": "Private", "established": 1986, "website": "preston.edu.pk", "type": "Comprehensive",
      "description": "Preston University offers programs in CS, business, and engineering.",
      "programs": {"BSPrograms": ["Computer Science", "Software Engineering", "Business Administration", "Electrical Engineering", "Civil Engineering"], "MSPrograms": ["Computer Science", "Business Administration"]},
-     "facilities": {"library": true, "lab": true, "wifi": true}},
+     "facilities": {"library": True, "lab": True, "wifi": True}},
 
     {"name": "The Islamia University of Bahawalpur (IUB)", "city": "Bahawalpur", "province": "Punjab", "sector": "Public", "established": 1975, "website": "iub.edu.pk", "type": "Comprehensive",
      "description": "IUB is a major university in southern Punjab.",
      "programs": {"BSPrograms": ["Computer Science", "Software Engineering", "Physics", "Chemistry", "Mathematics", "Economics", "Business Administration", "English", "Education", "Agriculture", "Law"], "MSPrograms": ["Computer Science", "Physics", "Chemistry"]},
-     "facilities": {"hostel": true, "library": true, "lab": true, "sports": true, "wifi": true, "cafeteria": true}},
+     "facilities": {"hostel": True, "library": True, "lab": True, "sports": True, "wifi": True, "cafeteria": True}},
 
     {"name": "National University of Medical Sciences (NUMS) Rawalpindi", "city": "Rawalpindi", "province": "Punjab", "sector": "Public", "established": 2015, "website": "numspak.edu.pk", "type": "Medical",
      "description": "NUMS is a federal medical university sponsored by the Pakistan Army.",
      "programs": {"BSPrograms": ["Medicine", "Dentistry", "Nursing", "Pharmacy", "Allied Health Sciences"], "MSPrograms": ["Public Health", "Anatomy", "Physiology"]},
-     "facilities": {"hostel": true, "library": true, "lab": true, "sports": true, "wifi": true}},
+     "facilities": {"hostel": True, "library": True, "lab": True, "sports": True, "wifi": True}},
 
     {"name": "Bahria Foundation College", "city": "Islamabad", "province": "Islamabad", "sector": "Private", "established": 2000, "website": "bahriafoundation.edu.pk", "type": "College",
      "description": "Bahria Foundation College offers intermediate and bachelor programs.",
      "programs": {"BSPrograms": ["Computer Science", "Business Administration", "Education"]},
-     "facilities": {"library": true, "lab": true, "wifi": true}},
+     "facilities": {"library": True, "lab": True, "wifi": True}},
 
     {"name": "Karachi Institute of Economics & Technology (KIET)", "city": "Karachi", "province": "Sindh", "sector": "Private", "established": 1997, "website": "kiet.edu.pk", "type": "Technology",
      "description": "KIET offers programs in computing, business, and engineering.",
      "programs": {"BSPrograms": ["Computer Science", "Software Engineering", "Information Technology", "Electrical Engineering", "Business Administration"], "MSPrograms": ["Computer Science", "Business Administration"]},
-     "facilities": {"library": true, "lab": true, "wifi": true}},
+     "facilities": {"library": True, "lab": True, "wifi": True}},
 
     {"name": "Indus University Karachi", "city": "Karachi", "province": "Sindh", "sector": "Private", "established": 2007, "website": "indus.edu.pk", "type": "Comprehensive",
      "description": "Indus University offers diverse programs.",
      "programs": {"BSPrograms": ["Computer Science", "Software Engineering", "Electrical Engineering", "Civil Engineering", "Architecture", "Business Administration", "Media Studies", "Fashion Design"], "MSPrograms": ["Computer Science", "Electrical Engineering"]},
-     "facilities": {"library": true, "lab": true, "wifi": true}},
+     "facilities": {"library": True, "lab": True, "wifi": True}},
 
     {"name": "Mukabbir University of Science & Technology Gujrat", "city": "Gujrat", "province": "Punjab", "sector": "Private", "established": 2019, "website": "must.edu.pk", "type": "Science & Technology",
      "description": "MUST is a new science and technology university in Gujrat.",
      "programs": {"BSPrograms": ["Computer Science", "Software Engineering", "Electrical Engineering", "Civil Engineering", "Business Administration"]},
-     "facilities": {"library": true, "lab": true, "wifi": true}},
+     "facilities": {"library": True, "lab": True, "wifi": True}},
 
     # ===== AJK =====
     {"name": "University of Azad Jammu & Kashmir (UAJK)", "city": "Muzaffarabad", "province": "AJK", "sector": "Public", "established": 1980, "website": "uajk.edu.pk", "type": "Comprehensive",
      "description": "UAJK is the premier university in Azad Jammu & Kashmir.",
      "programs": {"BSPrograms": ["Computer Science", "Software Engineering", "Physics", "Chemistry", "Mathematics", "Economics", "Business Administration", "English", "Education", "Law"], "MSPrograms": ["Computer Science", "Physics"]},
-     "facilities": {"hostel": true, "library": true, "lab": true, "sports": true, "wifi": true}},
+     "facilities": {"hostel": True, "library": True, "lab": True, "sports": True, "wifi": True}},
 
     {"name": "Mirpur University of Science & Technology (MUST)", "city": "Mirpur", "province": "AJK", "sector": "Public", "established": 2008, "website": "must.edu.pk", "type": "Science & Technology",
      "description": "MUST is a growing science and technology university in Mirpur.",
      "programs": {"BSPrograms": ["Computer Science", "Software Engineering", "Electrical Engineering", "Civil Engineering", "Business Administration", "Education"], "MSPrograms": ["Computer Science"]},
-     "facilities": {"hostel": true, "library": true, "lab": true, "wifi": true}},
+     "facilities": {"hostel": True, "library": True, "lab": True, "wifi": True}},
 ]
 
 

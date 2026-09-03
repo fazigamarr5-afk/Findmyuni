@@ -151,6 +151,24 @@ export const adminService = new AdminService();
 // ========== UNIVERSITY SERVICE ==========
 
 class UniversityApiService {
+  async getAll() {
+    return this.getUniversities();
+  }
+
+  async getUniversitiesByDeadlineSoon(days = 60, limit = 50) {
+    try {
+      const { data, error } = await supabase
+        .from('universities')
+        .select('*')
+        .order('name');
+      if (error) throw error;
+      return (data || []).slice(0, limit);
+    } catch (error) {
+      console.error('Error fetching universities by deadline:', error);
+      return [];
+    }
+  }
+
   async getUniversities(params = {}) {
     try {
       const response = await api.get('/universities/');
