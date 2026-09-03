@@ -160,4 +160,23 @@ class ChatbotService {
     };
     return s[context] || s.default;
   }
-  a
+
+  // Alias for Chatbot.jsx compatibility
+  async _callGeminiDirectly(text, conversationId, useWebSearch = false) {
+    return this.sendMessage(text, conversationId, useWebSearch);
+  }
+
+  async provideFeedback(messageId, isHelpful) {
+    // Store feedback in localStorage for now
+    try {
+      const feedback = JSON.parse(localStorage.getItem('chatbot_feedback') || '{}');
+      feedback[messageId] = { isHelpful, timestamp: new Date().toISOString() };
+      localStorage.setItem('chatbot_feedback', JSON.stringify(feedback));
+    } catch (e) { /* ignore */ }
+    return true;
+  }
+}
+
+const chatbotService = new ChatbotService();
+export { chatbotService };
+export default chatbotService;
