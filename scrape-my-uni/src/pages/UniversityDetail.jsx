@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react"
 import { useParams, useNavigate } from "react-router-dom"
+import { Helmet } from "react-helmet-async"
 import { useAuth } from "../context/AuthContext"
 import { universityService } from "../services/api.service"
 import { Chip, Button, Tab, Tabs, Box, Tooltip } from "@mui/material"
@@ -146,6 +147,13 @@ const UniversityDetail = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Helmet>
+        <title>{university.name} - Programs, Rankings & Admissions | FindMyUni</title>
+        <meta name="description" content={`${university.name} in ${bi.Location || 'Pakistan'}. ${programsData ? programsData.bs.length + programsData.ms.length + programsData.phd.length + ' programs' : ''} across BS, MS, PhD. ${rankingsData?.national ? 'Ranked #' + rankingsData.national + ' in Pakistan.' : ''} ${bi.Sector || ''} university. Admissions open now.`} />
+        <meta property="og:title" content={`${university.name} - FindMyUni`} />
+        <meta property="og:description" content={`${university.name} in ${bi.Location || 'Pakistan'}. Programs, rankings, scholarships and admission details.`} />
+        <link rel="canonical" href={`https://findmyuni.pk/universities/${id}`} />
+      </Helmet>
       {/* Hero Banner */}
       <div className="bg-gradient-to-r from-green-700 via-green-600 to-emerald-500 text-white">
         <div className="max-w-6xl mx-auto px-4 py-10 md:py-14">
