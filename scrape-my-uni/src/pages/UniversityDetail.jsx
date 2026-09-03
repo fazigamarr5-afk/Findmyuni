@@ -109,6 +109,15 @@ const UniversityDetail = () => {
   const colors = ["#16a34a", "#2563eb", "#9333ea", "#ea580c", "#dc2626", "#0891b2"]
   const avatarColor = colors[Math.abs(id?.charCodeAt(0) || 0) % colors.length]
 
+  const rankingsData = useMemo(() => {
+    const rk = university?.basic_info?.rankings
+    if (!rk || typeof rk !== "object") return null
+    if (Object.keys(rk).length === 0) return null
+    return rk
+  }, [university?.basic_info])
+
+  const logoUrl = university?.basic_info?.logo_url || null
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -141,8 +150,13 @@ const UniversityDetail = () => {
       <div className="bg-gradient-to-r from-green-700 via-green-600 to-emerald-500 text-white">
         <div className="max-w-6xl mx-auto px-4 py-10 md:py-14">
           <div className="flex flex-col md:flex-row items-start gap-6">
-            <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center text-3xl md:text-4xl font-bold shadow-lg flex-shrink-0" style={{ backgroundColor: "rgba(255,255,255,0.2)", backdropFilter: "blur(10px)" }}>
-              {getInitials(university.name)}
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0 overflow-hidden" style={{ backgroundColor: logoUrl ? "white" : "rgba(255,255,255,0.2)", backdropFilter: "blur(10px)" }}>
+              {logoUrl ? (
+                <img src={logoUrl} alt={university.name} className="w-full h-full object-contain p-1" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+              ) : null}
+              <div className={`text-3xl md:text-4xl font-bold ${logoUrl ? 'hidden' : 'flex'} items-center justify-center w-full h-full text-white`} style={{ display: logoUrl ? 'none' : 'flex' }}>
+                {getInitials(university.name)}
+              </div>
             </div>
             <div className="flex-1">
               <h1 className="text-2xl md:text-4xl font-bold mb-3 leading-tight">{university.name}</h1>
@@ -162,8 +176,11 @@ const UniversityDetail = () => {
               {/* Quick Stats */}
               <div className="flex flex-wrap gap-4 text-sm text-green-100">
                 {bi.student_count && <span>👨‍🎓 {bi.student_count} Students</span>}
-                {bi.QS_World_Rank && <span>🏆 QS Rank #{bi.QS_World_Rank}</span>}
-                {bi.Pakistan_Rank && <span>🇵🇰 #${bi.Pakistan_Rank} in Pakistan</span>}
+                {rankingsData?.world_qs && <span>🏆 QS World #{rankingsData.world_qs}</span>}
+                {rankingsData?.world_times && <span>🌍 Times #{rankingsData.world_times}</span>}
+                {rankingsData?.national && <span>🇵🇰 #{rankingsData.national} in Pakistan</span>}
+                {rankingsData?.hec && <span>🏛️ HEC {rankingsData.hec} Category</span>}
+                {bi.national_rank_badge && !rankingsData?.national && <span>🏅 {bi.national_rank_badge}</span>}
                 {programsData && <span>📚 {programsData.bs.length + programsData.ms.length + programsData.phd.length} Programs</span>}
               </div>
             </div>
@@ -295,6 +312,54 @@ const UniversityDetail = () => {
                         </div>
                       </div>
                     ))}
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* Rankings */}
+            {rankingsData && (
+              <section className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <WorkspacePremiumOutlined className="text-green-600" /> University Rankings
+                </h2>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+                  {rankingsData.world_qs && (
+                    <div className="text-center p-4 rounded-xl bg-gradient-to-b from-amber-50 to-white border border-amber-100">
+                      <div className="text-2xl font-bold text-amber-600">#{rankingsData.world_qs}</div>
+                      <div className="text-xs text-gray-500 mt-1">QS World</div>
+                    </div>
+                  )}
+                  {rankingsData.world_times && (
+                    <div className="text-center p-4 rounded-xl bg-gradient-to-b from-blue-50 to-white border border-blue-100">
+                      <div className="text-2xl font-bold text-blue-600">#{rankingsData.world_times}</div>
+                      <div className="text-xs text-gray-500 mt-1">Times Higher</div>
+                    </div>
+                  )}
+                  {rankingsData.national && (
+                    <div className="text-center p-4 rounded-xl bg-gradient-to-b from-green-50 to-white border border-green-100">
+                      <div className="text-2xl font-bold text-green-600">#{rankingsData.national}</div>
+                      <div className="text-xs text-gray-500 mt-1">National</div>
+                    </div>
+                  )}
+                  {rankingsData.hec && (
+                    <div className="text-center p-4 rounded-xl bg-gradient-to-b from-purple-50 to-white border border-purple-100">
+                      <div className="text-lg font-bold text-purple-600">{rankingsData.hec}</div>
+                      <div className="text-xs text-gray-500 mt-1">HEC Category</div>
+                    </div>
+                  )}
+                </div>
+                {rankingsData.prog && Object.keys(rankingsData.prog).length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Program Rankings</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {Object.entries(rankingsData.prog).map(([prog, rank]) => (
+                        <div key={prog} className="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50">
+                          <span className="text-sm text-gray-700">{prog}</span>
+                          <span className="text-sm font-bold text-green-600">#{rank}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </section>

@@ -77,7 +77,7 @@ const FeaturedUniversityCard = ({ university, onClick }) => {
       >
         <Box sx={{ p: 2, display: 'flex', alignItems: 'center', bgcolor: 'background.paper' }}>
           <Avatar
-            src={university.logoUrl}
+            src={university.logoUrl || university.basic_info?.logo_url}
             alt={university.name}
             sx={{ 
               width: 40, 
@@ -186,13 +186,12 @@ const ImportantAdmissionsCard = ({ university, onClick }) => {
         borderLeft: university.admissionOpen ? `4px solid ${theme.palette.success.main}` : 'none',
       }}
       onClick={handleClick}
-    >
-      <Avatar
-        src={university.logoUrl}
+    >      <Avatar
+        src={university.logoUrl || university.basic_info?.logo_url}
         alt={university.name}
         sx={{ 
-          width: 50, 
-          height: 50, 
+          width: 50,
+          height: 50,
           mr: 2,
           bgcolor: theme.palette.primary.main,
         }}

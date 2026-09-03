@@ -39,9 +39,11 @@ const UniversityCard = ({ university, onClick, index = 0 }) => {
     deadline,
     sector,
     admissionOpen,
-    logoUrl,
     programs = []
   } = university;
+
+  const logoUrl = university?.logoUrl || university?.basic_info?.logo_url || null;
+  const rankings = university?.basic_info?.rankings || {};
 
   // Format location for display
   const getDisplayLocation = () => {
@@ -261,7 +263,21 @@ const UniversityCard = ({ university, onClick, index = 0 }) => {
           }}>
             <Stack spacing={1.5}>
               {/* Admission Status Badge */}
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
+                {rankings.national && rankings.national <= 10 && (
+                  <Chip
+                    label={`#${rankings.national} Pakistan`}
+                    size="small"
+                    sx={{ bgcolor: '#fef3c7', color: '#92400e', fontWeight: 700, fontSize: '0.7rem' }}
+                  />
+                )}
+                {rankings.world_qs && (
+                  <Chip
+                    label={`QS #${rankings.world_qs}`}
+                    size="small"
+                    sx={{ bgcolor: '#dbeafe', color: '#1e40af', fontWeight: 600, fontSize: '0.7rem' }}
+                  />
+                )}
                 {isAdmissionStillOpen && (
                   <Chip
                     icon={<CheckCircleIcon />}

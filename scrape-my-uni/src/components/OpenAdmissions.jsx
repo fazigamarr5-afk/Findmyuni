@@ -149,12 +149,28 @@ const OpenAdmissions = () => {
                     <TableRow key={uni.id || index} sx={{ '&:hover': { bgcolor: 'action.hover' } }}>
                       <TableCell>{(page - 1) * rowsPerPage + index + 1}</TableCell>
                       <TableCell>
-                        <Link to={`/universities/${uni.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                          <Typography fontWeight="medium" color="primary.main" sx={{ '&:hover': { textDecoration: 'underline' } }}>
-                            {uni.name}
-                          </Typography>
-                        </Link>
-                        {location && <Typography variant="body2" color="text.secondary">{location}</Typography>}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                          {uni.basic_info?.logo_url ? (
+                            <Box component="img" src={uni.basic_info.logo_url} alt="" sx={{ width: 28, height: 28, borderRadius: 1, objectFit: 'contain', bgcolor: '#f5f5f5', flexShrink: 0 }} onError={(e) => { e.target.style.display = 'none'; }} />
+                          ) : (
+                            <Box sx={{ width: 28, height: 28, borderRadius: 1, bgcolor: '#16a34a', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 'bold', flexShrink: 0 }}>
+                              {uni.name?.charAt(0)}
+                            </Box>
+                          )}
+                          <Box>
+                            <Link to={`/universities/${uni.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                              <Typography fontWeight="medium" color="primary.main" sx={{ '&:hover': { textDecoration: 'underline' } }}>
+                                {uni.name}
+                              </Typography>
+                            </Link>
+                            {uni.basic_info?.rankings?.national && uni.basic_info.rankings.national <= 10 && (
+                              <Box component="span" sx={{ display: 'inline-block', px: 0.8, py: 0.1, borderRadius: 1, bgcolor: '#fef3c7', color: '#92400e', fontSize: '0.65rem', fontWeight: 700, mt: 0.3 }}>
+                                #{uni.basic_info.rankings.national} Pakistan
+                              </Box>
+                            )}
+                            {location && <Typography variant="body2" color="text.secondary">{location}</Typography>}
+                          </Box>
+                        </Box>
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2">

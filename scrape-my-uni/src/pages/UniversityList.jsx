@@ -770,7 +770,24 @@ const UniversityList = () => {
                       ref={index === displayCount - 1 ? lastUniversityElementRef : null}
                     >
                       <TableCell>
-                        <Typography variant="body1" fontWeight="medium">{university.name}</Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                          {(university.basic_info?.logo_url) ? (
+                            <Box component="img" src={university.basic_info.logo_url} alt="" sx={{ width: 32, height: 32, borderRadius: 1, objectFit: 'contain', bgcolor: '#f5f5f5' }} onError={(e) => { e.target.style.display = 'none'; }} />
+                          ) : (
+                            <Box sx={{ width: 32, height: 32, borderRadius: 1, bgcolor: '#16a34a', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 'bold', flexShrink: 0 }}>
+                              {university.name?.charAt(0)}
+                            </Box>
+                          )}
+                          <Box>
+                            <Typography variant="body1" fontWeight="medium" noWrap>{university.name}</Typography>
+                            {university.basic_info?.rankings?.national && university.basic_info.rankings.national <= 25 && (
+                              <Chip label={`#${university.basic_info.rankings.national} Pakistan`} size="small" sx={{ mt: 0.5, height: 20, fontSize: '0.65rem', bgcolor: '#fef3c7', color: '#92400e', fontWeight: 700 }} />
+                            )}
+                            {university.basic_info?.rankings?.world_qs && (
+                              <Chip label={`QS #${university.basic_info.rankings.world_qs}`} size="small" sx={{ mt: 0.5, ml: 0.5, height: 20, fontSize: '0.65rem', bgcolor: '#dbeafe', color: '#1e40af', fontWeight: 600 }} />
+                            )}
+                          </Box>
+                        </Box>
                         {(() => {
                           // Parse deadline
                           const deadline = university.deadline || 
