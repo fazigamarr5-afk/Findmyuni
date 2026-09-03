@@ -383,22 +383,35 @@ export const applicationService = new ApplicationService();
 
 class ConnectionStatus {
   constructor() {
-    this.isOnline = navigator.onLine;
+    this.isOnline = false;
     this.listeners = [];
+    this.checkInterval = null;
+    
+    // Initial check after 2 seconds
+    setTimeout(() => this.pingSupabase(), 2000);
+    // Check every 30 seconds
+    this.checkInterval = setInterval(() => this.pingSupabase(), 30000);
+  }
 
-    window.addEventListener('online', () => {
-      this.isOnline = true;
-      this.notify();
-    });
-
-    window.addEventListener('offline', () => {
+  async pingSupabase() {
+    try {
+      const { data, error } = await supabase
+        .from('universities')
+        .select('id', { count: 'exact', head: true });
+      const wasOnline = this.isOnline;
+      this.isOnline = !error;
+      if (wasOnline !== this.isOnline) this.notify();
+    } catch (e) {
+      const wasOnline = this.isOnline;
       this.isOnline = false;
-      this.notify();
-    });
+      if (wasOnline !== this.isOnline) this.notify();
+    }
   }
 
   subscribe(callback) {
     this.listeners.push(callback);
+    // Immediately call with current status
+    callback(this.isOnline);
     return () => {
       this.listeners = this.listeners.filter(l => l !== callback);
     };
