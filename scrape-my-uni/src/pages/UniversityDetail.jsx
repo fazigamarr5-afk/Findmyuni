@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom"
 import { Helmet } from "react-helmet-async"
 import { useAuth } from "../context/AuthContext"
 import { universityService, favoritesService } from "../services/api.service"
+import { supabase } from "../supabase"
 import { Chip, Button, Tab, Tabs, Box, Tooltip, IconButton } from "@mui/material"
 import { MapOutlined, SchoolOutlined, CalendarMonthOutlined, AccountBalanceOutlined, ChevronRight, OpenInNew, StarOutline, StarBorderOutlined, WorkspacePremiumOutlined, HotelOutlined, MenuBookOutlined } from "@mui/icons-material"
 
@@ -32,6 +33,12 @@ const UniversityDetail = () => {
         const fav = await favoritesService.isFavorited(id)
         setIsFavorited(fav)
       }
+      // Track view count (fire and forget)
+      try {
+        const views = (data.basic_info?.views || 0) + 1
+        const bi = { ...data.basic_info, views }
+        supabase.from('universities').update({ basic_info: bi }).eq('id', id).then(() => {})
+      } catch(e) {}
     } catch (err) {
       setError("Failed to load university details")
       console.error(err)
@@ -184,7 +191,7 @@ const UniversityDetail = () => {
           <div className="flex flex-col md:flex-row items-start gap-6">
             <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0 overflow-hidden" style={{ backgroundColor: logoUrl ? "white" : "rgba(255,255,255,0.2)", backdropFilter: "blur(10px)" }}>
               {logoUrl ? (
-                <img src={logoUrl} alt={university.name} className="w-full h-full object-contain p-1" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+                <img src={logoUrl} alt={university.name} loading="lazy" className="w-full h-full object-contain p-1" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
               ) : null}
               <div className={`text-3xl md:text-4xl font-bold ${logoUrl ? 'hidden' : 'flex'} items-center justify-center w-full h-full text-white`} style={{ display: logoUrl ? 'none' : 'flex' }}>
                 {getInitials(university.name)}

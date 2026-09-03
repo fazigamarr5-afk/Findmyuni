@@ -194,6 +194,7 @@ const UniversityCard = ({ university, onClick, index = 0 }) => {
             <Avatar 
               src={logoUrl} 
               alt={name}
+              imgProps={{ loading: 'lazy' }}
               sx={{ 
                 width: 50, 
                 height: 50,

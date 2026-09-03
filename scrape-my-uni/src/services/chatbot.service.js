@@ -1,12 +1,11 @@
 import { api } from './api.service';
 
-// Add Gemini API key and configuration - hardcoded for direct access
-const GEMINI_API_KEY = "AIzaSyDXsVNoJTT6wOO1OZOpcbmbrjpseCj5GgA"; // Hardcoded API key
-const GEMINI_MODEL = "gemini-2.0-flash";
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+// OpenRouter API configuration (free tier)
+const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || "";
+const OPENROUTER_MODEL = "nvidia/nemotron-3-super-120b-a12b:free";
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
-// Log that we're using the hardcoded key
-console.log("Using hardcoded Gemini API key");
+console.log("Using OpenRouter API for chatbot");
 
 // Initialize local knowledge base for RAG
 const LOCAL_KNOWLEDGE_BASE = [
@@ -734,10 +733,10 @@ Instructions:
     
     return new Promise(async (resolve, reject) => {
       try {
-        // Try using direct Gemini API first if we have a key
-        if (GEMINI_API_KEY) {
+        // Try using direct API first if we have a key
+        if (OPENROUTER_API_KEY) {
           try {
-            console.log('Attempting direct Gemini API call from fallback');
+            console.log('Attempting direct API call from fallback');
             const geminiResponse = await this._callGeminiDirectly(message, conversationId, false);
             if (geminiResponse) {
               console.log('Direct Gemini API call successful from fallback');
@@ -1045,8 +1044,8 @@ Instructions:
    * @returns {Promise<Object>} - Formatted response
    */
   async _callGeminiDirectly(text, conversationId, useWebSearch = false) {
-    if (!GEMINI_API_KEY) {
-      throw new Error("Gemini API key is not configured");
+    if (!OPENROUTER_API_KEY) {
+      throw new Error("OpenRouter API key is not configured");
     }
     
     // Create the request body once outside the retry loop
@@ -1117,11 +1116,13 @@ Please answer the following question as helpfully as possible: ${text}`
         console.log(`Sending request to Gemini API (attempt ${attempts + 1}/${maxAttempts})...`);
         
         // Make the API call with correct CORS settings
-        const response = await fetch(GEMINI_API_URL, {
+        const response = await fetch(OPENROUTER_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Origin': window.location.origin
+            'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+            'HTTP-Referer': window.location.origin,
+            'X-Title': 'FindMyUni'
           },
           body: JSON.stringify(requestBody),
           mode: 'cors' // Explicitly set CORS mode
@@ -1162,16 +1163,11 @@ Please answer the following question as helpfully as possible: ${text}`
         
         // Extract the response text
         let answer = "";
-        if (data && 
-            data.candidates && 
-            data.candidates[0] && 
-            data.candidates[0].content && 
-            data.candidates[0].content.parts && 
-            data.candidates[0].content.parts[0]) {
-          answer = data.candidates[0].content.parts[0].text;
+        if (data?.choices?.[0]?.message?.content) {
+          answer = data.choices[0].message.content;
         } else {
-          console.error("Unexpected Gemini API response format:", data);
-          throw new Error("Unexpected Gemini API response format");
+          console.error("Unexpected API response format:", data);
+          throw new Error("Unexpected API response format");
         }
         
         // Format the response to match our expected format

@@ -451,6 +451,39 @@ const UniversityCompare = () => {
                   ))}
                 </TableRow>
 
+                {/* Rankings */}
+                <TableRow>
+                  <TableCell sx={{ bgcolor: isDarkMode ? 'grey.900' : 'grey.100', fontWeight: 'bold' }}>
+                    <Box display="flex" alignItems="center"><RankingIcon sx={{ mr: 1 }} />Rankings</Box>
+                  </TableCell>
+                  {comparisonData.map((uni, index) => (
+                    <TableCell key={index}>
+                      {(() => {
+                        const rk = uni.basic_info?.rankings || {};
+                        if (!rk || Object.keys(rk).length === 0) return <Typography variant="body2" color="text.secondary">N/A</Typography>;
+                        return (
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                            {rk.national && <Chip label={`#${rk.national} National`} size="small" sx={{ bgcolor: '#fef3c7', color: '#92400e', fontWeight: 600 }} />}
+                            {rk.world_qs && <Chip label={`QS #${rk.world_qs}`} size="small" sx={{ bgcolor: '#dbeafe', color: '#1e40af' }} />}
+                            {rk.world_times && <Chip label={`THE #${rk.world_times}`} size="small" sx={{ bgcolor: '#ede9fe', color: '#6d28d9' }} />}
+                            {rk.hec && <Chip label={`HEC ${rk.hec}`} size="small" sx={{ bgcolor: '#f0fdf4', color: '#166534' }} />}
+                          </Box>
+                        );
+                      })()}
+                    </TableCell>
+                  ))}
+                </TableRow>
+
+                {/* Sector */}
+                <TableRow>
+                  <TableCell sx={{ bgcolor: isDarkMode ? 'grey.900' : 'grey.100', fontWeight: 'bold' }}>Sector</TableCell>
+                  {comparisonData.map((uni, index) => (
+                    <TableCell key={index}>
+                      {uni.sector || uni.basic_info?.Sector || 'N/A'}
+                    </TableCell>
+                  ))}
+                </TableRow>
+
                 {/* Scholarships */}
                 <TableRow>
                   <TableCell sx={{ bgcolor: isDarkMode ? 'grey.900' : 'grey.100', fontWeight: 'bold' }}>Scholarships</TableCell>
