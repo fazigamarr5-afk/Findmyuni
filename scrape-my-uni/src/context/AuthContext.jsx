@@ -34,6 +34,26 @@ export function AuthProvider({ children }) {
           .eq('id', data.user.id);
       }
 
+      // AUTO-ADMIN: If no admins exist yet, make this user admin
+      if (data.user) {
+        try {
+          const { count } = await supabase
+            .from('admins')
+            .select('id', { count: 'exact', head: true });
+          if (count === 0) {
+            await supabase.from('admins').insert({
+              user_id: data.user.id,
+              email: data.user.email.toLowerCase(),
+              name: name || 'Admin',
+            });
+            await supabase.from('users').update({ role: 'admin' }).eq('id', data.user.id);
+            console.log('🎉 First user auto-promoted to admin!');
+          }
+        } catch (e) {
+          console.warn('Auto-admin check failed:', e);
+        }
+      }
+
       return data.user;
     } catch (err) {
       console.error('Signup error:', err);
