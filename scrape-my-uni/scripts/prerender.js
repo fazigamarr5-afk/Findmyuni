@@ -194,22 +194,36 @@ function generateBlogPostHtml(template, post) {
   // Fix WebSite structured data URLs
   html = html.replace(/findmyuni\.pk/g, 'www.findmyuni.site');
   
-  // Add Article structured data
-  const articleSchema = JSON.stringify({
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: post.title,
-    description: post.description,
-    author: { '@type': 'Organization', name: 'FindMyUni' },
-    publisher: { '@type': 'Organization', name: 'FindMyUni' },
-    url: url,
-    datePublished: '2026-09-04',
-    dateModified: '2026-09-04'
-  });
+  // Fix og:image and twitter:image to use www
+  html = html.replace(/content="https:\/\/findmyuni\.site\//g, 'content="https://www.findmyuni.site/');
+  
+  // Add Article + BreadcrumbList + Person structured data
+  const schemas = [
+    JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: post.title,
+      description: post.description,
+      author: { '@type': 'Person', name: 'FindMyUni Team', url: `${SITE_URL}/about` },
+      publisher: { '@type': 'Organization', name: 'FindMyUni', url: SITE_URL },
+      url: url,
+      datePublished: '2026-09-04',
+      dateModified: '2026-09-04'
+    }),
+    JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE_URL}/blog` },
+        { '@type': 'ListItem', position: 3, name: post.title }
+      ]
+    })
+  ];
   
   html = html.replace(
     /<\/head>/,
-    `    <script type="application/ld+json">${articleSchema}</script>\n  </head>`
+    schemas.map(s => `    <script type="application/ld+json">${s}</script>`).join('\n') + '\n  </head>'
   );
   
   return html;
@@ -267,6 +281,9 @@ function generateStaticPageHtml(template, page) {
   
   // Fix WebSite structured data URLs
   html = html.replace(/findmyuni\.pk/g, 'www.findmyuni.site');
+  
+  // Fix og:image and twitter:image to use www
+  html = html.replace(/content="https:\/\/findmyuni\.site\//g, 'content="https://www.findmyuni.site/');
   
   return html;
 }
