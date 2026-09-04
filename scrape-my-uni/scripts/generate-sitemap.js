@@ -47,6 +47,16 @@ function generate() {
     xml.push(`  <url><loc>${SITE_URL}/blog/${slug}</loc><lastmod>2026-09-04</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>`);
   }
   
+  // Comparison pages
+  const comparisonPages = [
+    'nust-vs-lums',
+    'fast-vs-nust-cs',
+    'best-university-search-tools-pakistan'
+  ];
+  for (const slug of comparisonPages) {
+    xml.push(`  <url><loc>${SITE_URL}/comparisons/${slug}</loc><lastmod>2026-09-04</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>`);
+  }
+  
   // University pages (from slug file)
   const slugsPath = join(import.meta.dirname, '..', 'public', 'university-slugs.json');
   try {
