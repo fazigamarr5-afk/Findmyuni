@@ -271,6 +271,54 @@ function generateStaticPageHtml(template, page) {
   return html;
 }
 
+function generateUniversityHtml(template, uni) {
+  const title = escapeHtml(uni.name);
+  const description = escapeHtml(`${uni.name} — programs, QS/HEC rankings, admission deadlines, fee structure, and scholarships. Compare on FindMyUni.`);
+  const url = `${SITE_URL}/universities/${uni.slug}`;
+  
+  let html = template;
+  
+  // Replace title
+  html = html.replace(/<title>.*?<\/title>/, `<title>${title} | FindMyUni</title>`);
+  
+  // Replace meta description
+  html = html.replace(
+    /<meta name="description" content=".*?"/,
+    `<meta name="description" content="${description}"`
+  );
+  
+  // Replace OG tags
+  html = html.replace(/<meta property="og:url" content=".*?"/, `<meta property="og:url" content="${url}"`);
+  html = html.replace(/<meta property="og:title" content=".*?"/, `<meta property="og:title" content="${title}"`);
+  html = html.replace(/<meta property="og:description" content=".*?"/, `<meta property="og:description" content="${description}"`);
+  html = html.replace(/<meta property="og:type" content="website"/, `<meta property="og:type" content="university"`);
+  
+  // Replace Twitter tags
+  html = html.replace(/<meta property="twitter:url" content=".*?"/, `<meta property="twitter:url" content="${url}"`);
+  html = html.replace(/<meta property="twitter:title" content=".*?"/, `<meta property="twitter:title" content="${title}"`);
+  html = html.replace(/<meta property="twitter:description" content=".*?"/, `<meta property="twitter:description" content="${description}"`);
+  
+  // Replace canonical
+  html = html.replace(/<link rel="canonical" href=".*?"/, `<link rel="canonical" href="${url}"`);
+  
+  // Fix WebSite structured data URLs
+  html = html.replace(/findmyuni\.pk/g, 'www.findmyuni.site');
+  
+  // Add EducationalOrganization structured data
+  const orgSchema = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'EducationalOrganization',
+    name: uni.name,
+    url: url
+  });
+  html = html.replace(
+    /<\/head>/,
+    `    <script type="application/ld+json">${orgSchema}</script>\n  </head>`
+  );
+  
+  return html;
+}
+
 function main() {
   const indexPath = join(DIST, 'index.html');
   
@@ -302,6 +350,23 @@ function main() {
     writeFileSync(join(dir, 'index.html'), html);
     count++;
     console.log(`  ✅ /${page.path || ''}`);
+  }
+  
+  // Generate university pages
+  console.log('\n🏫 Generating university pages...');
+  const slugsPath = join(import.meta.dirname, '..', 'public', 'university-slugs.json');
+  if (existsSync(slugsPath)) {
+    const unis = JSON.parse(readFileSync(slugsPath, 'utf-8'));
+    for (const uni of unis) {
+      const dir = join(DIST, 'universities', uni.slug);
+      mkdirSync(dir, { recursive: true });
+      const html = generateUniversityHtml(template, uni);
+      writeFileSync(join(dir, 'index.html'), html);
+      count++;
+    }
+    console.log(`  ✅ ${unis.length} university pages generated`);
+  } else {
+    console.log('  ⚠️ university-slugs.json not found, skipping university pages');
   }
   
   console.log(`\n🎉 Pre-rendered ${count} pages successfully!`);

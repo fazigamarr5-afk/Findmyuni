@@ -1,0 +1,48 @@
+# FindMyUni — University Finder for Pakistan
+
+> FindMyUni helps Pakistani students find and compare 336+ universities with QS/HEC rankings, programs, scholarships, and admission deadlines.
+
+## Site Structure
+
+- `/` — Homepage with university search
+- `/universities` — Browse all universities
+- `/universities/:slug` — Individual university page with programs, rankings, scholarships
+- `/blog` — Blog with guides on admissions, scholarships, careers
+- `/blog/:slug` — Individual blog post
+- `/compare` — Side-by-side university comparison
+- `/about` — About FindMyUni
+- `/contact` — Contact information
+- `/features` — Platform features
+
+## Key Content
+
+### Universities Database
+- 336+ Pakistani universities indexed
+- Programs: BS, MS, PhD across all fields
+- QS World Rankings and HEC categories (W, X, Y, Z)
+- Admission deadlines and fee structures
+- Scholarship information
+
+### Blog Categories
+- **Rankings**: University rankings and HEC category guides
+- **Admissions**: Entry test guides (NET, ECAT, FAST Test)
+- **Programs**: Field-specific university comparisons
+- **Scholarships**: Financial aid guides (HEC, PEEF, Ehsaas)
+- **Guides**: Application tips, personal statements
+- **Career**: Job market data, salary comparisons, freelancing
+
+## Data Sources
+
+- Supabase database with university data
+- QS World Rankings
+- HEC (Higher Education Commission) classifications
+- University official websites
+
+## Contact
+
+- Website: https://www.findmyuni.site
+- Email: support@findmyuni.site
+
+## Last Updated
+
+September 2026
