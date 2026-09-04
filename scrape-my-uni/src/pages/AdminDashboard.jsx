@@ -11,8 +11,7 @@ import {
   Grid, Card, CardContent, Divider, Chip, List, ListItem, ListItemText,
   ListItemSecondaryAction, Switch, LinearProgress, Tooltip, Badge
 } from '@mui/material';
-import { styled } from '@mui/material/styles';
-import { 
+import { styled } from '@mui/material/styles';import {
   Refresh as RefreshIcon,
   Add as AddIcon,
   Edit as EditIcon,
@@ -32,10 +31,14 @@ import {
   Download as DownloadIcon,
   AutoFixHigh as AutoFixHighIcon,
   RateReview as RateReviewIcon,
-  Storage as StorageIcon
+  Storage as StorageIcon,
+  Article as ArticleIcon,
+  Description as DescriptionIcon
 } from '@mui/icons-material';
 import { supabase } from '../supabase';
 import { adminService, checkApiConnectivity, isUsingFirestoreFallback } from '../services/api.service.js';
+import PageManager from '../components/admin/PageManager.jsx';
+import BlogManager from '../components/admin/BlogManager.jsx';
 
 // ============================================================
 // STYLED COMPONENTS
@@ -1160,6 +1163,8 @@ const AdminDashboard = () => {
           <Tab icon={<AutoFixHighIcon />} label="Data Quality" />
           <Tab icon={<BarChartIcon />} label="Analytics" />
           <Tab icon={<RateReviewIcon />} label="Reviews" />
+          <Tab icon={<DescriptionIcon />} label="Pages" />
+          <Tab icon={<ArticleIcon />} label="Blog" />
           <Tab icon={<SettingsIcon />} label="Settings" />
         </Tabs>
       </Paper>
@@ -1170,7 +1175,9 @@ const AdminDashboard = () => {
       {activeTab === 3 && renderDataQualityTab()}
       {activeTab === 4 && renderAnalyticsTab()}
       {activeTab === 5 && renderReviewsTab()}
-      {activeTab === 6 && renderSettingsTab()}
+      {activeTab === 6 && <PageManager />}
+      {activeTab === 7 && <BlogManager />}
+      {activeTab === 8 && renderSettingsTab()}
 
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         {renderDialogContent()}
