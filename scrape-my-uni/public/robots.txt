@@ -4,6 +4,17 @@ Disallow: /admin/
 Disallow: /dashboard
 Disallow: /profile
 
-Sitemap: https://findmyuni.pk/sitemap.xml
+# Block AI training crawlers (allow search indexing)
+User-agent: GPTBot
+Disallow: /
 
-# Crawl-delay: 1
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+Sitemap: https://www.findmyuni.site/sitemap.xml
