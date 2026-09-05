@@ -10,60 +10,28 @@ import {
   Chip,
   Box,
   Grid,
-  FormControl,
-  InputLabel,
-  Stack
 } from '@mui/material';
 import {
   FilterList as FilterListIcon,
-  Clear as ClearIcon
+  Clear as ClearIcon,
 } from '@mui/icons-material';
-import { universityService } from '../services/api.service';
-
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
-};
-
-// Constants for filter options
-const SECTORS = ["Public", "Private", "Semi Government"];
-const PROVINCES = ["Punjab", "Sindh", "KPK", "Balochistan", "Islamabad", "AJK", "Gilgit"];
-const PROGRAM_TYPES = ["BS", "MS", "PhD", "Associate", "Diploma", "Certificate"];
-const CITIES = [
-  "Islamabad", "Lahore", "Karachi", "Peshawar", "Quetta", "Multan", "Faisalabad", 
-  "Rawalpindi", "Sialkot", "Bahawalpur", "Hyderabad", "Jamshoro"
-];
+import { SECTORS, PROVINCES, PROGRAM_TYPES, CITIES } from '../constants/filters';
+import useFilters from '../hooks/useFilters';
 
 const FilterPanel = ({ filters, onFilterChange }) => {
   const [activeFilters, setActiveFilters] = useState([]);
-  const [loading, setLoading] = useState(false);
 
-  // Local state to manage filters before submitting
-  const [localFilters, setLocalFilters] = useState({
-    programType: filters.programType || [],
-    location: filters.location || [],
-    sector: filters.sector || [],
-    province: filters.province || [],
-    admissionOpen: filters.admissionOpen || false
-  });
+  const {
+    localFilters,
+    handleChipToggle,
+    handleCheckboxChange,
+    clearAll,
+    resetTo,
+  } = useFilters(filters);
 
   useEffect(() => {
-    // Safely merge filters with defaults to ensure all properties exist
-    setLocalFilters(prevFilters => ({
-      ...prevFilters,
-      programType: filters.programType || prevFilters.programType || [],
-      location: filters.location || prevFilters.location || [],
-      sector: filters.sector || prevFilters.sector || [],
-      province: filters.province || prevFilters.province || [],
-      admissionOpen: filters.admissionOpen ?? prevFilters.admissionOpen ?? false
-    }));
-  }, [filters]);
+    resetTo(filters);
+  }, [filters, resetTo]);
 
   useEffect(() => {
     updateActiveFilters();
@@ -85,89 +53,39 @@ const FilterPanel = ({ filters, onFilterChange }) => {
   }, [localFilters]);
 
   const updateActiveFilters = () => {
-    // Safety check: ensure localFilters has all required properties
-    if (!localFilters) return;
-    
     const newActiveFilters = [];
-
-    if (Array.isArray(localFilters.programType) && localFilters.programType.length > 0) {
-      newActiveFilters.push(`Programs: ${localFilters.programType.length} selected`);
-    }
-
-    if (Array.isArray(localFilters.location) && localFilters.location.length > 0) {
-      newActiveFilters.push(`Cities: ${localFilters.location.length} selected`);
-    }
-
-    if (Array.isArray(localFilters.sector) && localFilters.sector.length > 0) {
-      newActiveFilters.push(`Sectors: ${localFilters.sector.length} selected`);
-    }
-
-    if (Array.isArray(localFilters.province) && localFilters.province.length > 0) {
-      newActiveFilters.push(`Provinces: ${localFilters.province.length} selected`);
-    }
-
-    if (localFilters.admissionOpen) {
-      newActiveFilters.push('Admission Open');
-    }
-
+    if (localFilters.programType.length > 0) newActiveFilters.push(`Programs: ${localFilters.programType.length} selected`);
+    if (localFilters.location.length > 0) newActiveFilters.push(`Cities: ${localFilters.location.length} selected`);
+    if (localFilters.sector.length > 0) newActiveFilters.push(`Sectors: ${localFilters.sector.length} selected`);
+    if (localFilters.province.length > 0) newActiveFilters.push(`Provinces: ${localFilters.province.length} selected`);
+    if (localFilters.admissionOpen) newActiveFilters.push('Admission Open');
     setActiveFilters(newActiveFilters);
-  };
-
-  const handleCheckboxChange = (event) => {
-    setLocalFilters(prev => ({
-      ...prev,
-      [event.target.name]: event.target.checked
-    }));
   };
 
   const applyFilters = () => {
     if (typeof onFilterChange === 'function') {
-      onFilterChange({...localFilters});
+      onFilterChange({ ...localFilters });
     }
   };
 
   const handleClearFilters = () => {
-    const clearedFilters = {
-      programType: [],
-      location: [],
-      sector: [],
-      province: [],
-      admissionOpen: false
-    };
-    
-    setLocalFilters(clearedFilters);
+    clearAll();
     if (typeof onFilterChange === 'function') {
-      onFilterChange(clearedFilters);
+      onFilterChange({ programType: [], location: [], sector: [], province: [], admissionOpen: false });
     }
   };
 
   const handleRemoveFilter = (filter) => {
-    // Always use the function update form of setState to prevent stale state issues
     if (filter.includes('Programs:')) {
-      setLocalFilters(prev => ({
-        ...prev,
-        programType: []
-      }));
+      resetTo({ ...localFilters, programType: [] });
     } else if (filter.includes('Cities:')) {
-      setLocalFilters(prev => ({
-        ...prev,
-        location: []
-      }));
+      resetTo({ ...localFilters, location: [] });
     } else if (filter.includes('Sectors:')) {
-      setLocalFilters(prev => ({
-        ...prev,
-        sector: []
-      }));
+      resetTo({ ...localFilters, sector: [] });
     } else if (filter.includes('Provinces:')) {
-      setLocalFilters(prev => ({
-        ...prev,
-        province: []
-      }));
+      resetTo({ ...localFilters, province: [] });
     } else if (filter === 'Admission Open') {
-      setLocalFilters(prev => ({
-        ...prev,
-        admissionOpen: false
-      }));
+      resetTo({ ...localFilters, admissionOpen: false });
     }
   };
 
@@ -239,27 +157,8 @@ const FilterPanel = ({ filters, onFilterChange }) => {
               <span role="img" aria-label="sector" style={{ marginRight: '4px' }}>🏢</span> Sector
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-              {SECTORS.map(sector => (
-                <Chip
-                  key={sector}
-                  label={sector}
-                  size="small"
-                  clickable
-                  color={localFilters.sector.includes(sector) ? "primary" : "default"}
-                  onClick={() => {
-                    if (localFilters.sector.includes(sector)) {
-                      setLocalFilters(prev => ({
-                        ...prev,
-                        sector: prev.sector.filter(s => s !== sector)
-                      }));
-                    } else {
-                      setLocalFilters(prev => ({
-                        ...prev,
-                        sector: [...prev.sector, sector]
-                      }));
-                    }
-                  }}
-                />
+              {SECTORS.map((sector) => (
+                <Chip key={sector} label={sector} size="small" clickable color={localFilters.sector.includes(sector) ? 'primary' : 'default'} onClick={() => handleChipToggle('sector', sector)} />
               ))}
             </Box>
           </Box>
@@ -272,27 +171,8 @@ const FilterPanel = ({ filters, onFilterChange }) => {
               <span role="img" aria-label="province" style={{ marginRight: '4px' }}>🗺️</span> Province
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-              {PROVINCES.map(province => (
-                <Chip
-                  key={province}
-                  label={province}
-                  size="small"
-                  clickable
-                  color={localFilters.province.includes(province) ? "primary" : "default"}
-                  onClick={() => {
-                    if (localFilters.province.includes(province)) {
-                      setLocalFilters(prev => ({
-                        ...prev,
-                        province: prev.province.filter(p => p !== province)
-                      }));
-                    } else {
-                      setLocalFilters(prev => ({
-                        ...prev,
-                        province: [...prev.province, province]
-                      }));
-                    }
-                  }}
-                />
+              {PROVINCES.map((province) => (
+                <Chip key={province} label={province} size="small" clickable color={localFilters.province.includes(province) ? 'primary' : 'default'} onClick={() => handleChipToggle('province', province)} />
               ))}
             </Box>
           </Box>
@@ -305,27 +185,8 @@ const FilterPanel = ({ filters, onFilterChange }) => {
               <span role="img" aria-label="program" style={{ marginRight: '4px' }}>📚</span> Program Types
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-              {["BS", "MS", "PhD", "Associate", "Diploma"].map(program => (
-                <Chip
-                  key={program}
-                  label={program}
-                  size="small"
-                  clickable
-                  color={localFilters.programType.includes(program) ? "primary" : "default"}
-                  onClick={() => {
-                    if (localFilters.programType.includes(program)) {
-                      setLocalFilters(prev => ({
-                        ...prev,
-                        programType: prev.programType.filter(p => p !== program)
-                      }));
-                    } else {
-                      setLocalFilters(prev => ({
-                        ...prev,
-                        programType: [...prev.programType, program]
-                      }));
-                    }
-                  }}
-                />
+              {PROGRAM_TYPES.map((program) => (
+                <Chip key={program} label={program} size="small" clickable color={localFilters.programType.includes(program) ? 'primary' : 'default'} onClick={() => handleChipToggle('programType', program)} />
               ))}
             </Box>
           </Box>
@@ -339,27 +200,8 @@ const FilterPanel = ({ filters, onFilterChange }) => {
               <span role="img" aria-label="city" style={{ marginRight: '4px' }}>🏙️</span> Major Cities
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-              {CITIES.map(city => (
-                <Chip
-                  key={city}
-                  label={city}
-                  size="small"
-                  clickable
-                  color={localFilters.location.includes(city) ? "primary" : "default"}
-                  onClick={() => {
-                    if (localFilters.location.includes(city)) {
-                      setLocalFilters(prev => ({
-                        ...prev,
-                        location: prev.location.filter(c => c !== city)
-                      }));
-                    } else {
-                      setLocalFilters(prev => ({
-                        ...prev,
-                        location: [...prev.location, city]
-                      }));
-                    }
-                  }}
-                />
+              {CITIES.map((city) => (
+                <Chip key={city} label={city} size="small" clickable color={localFilters.location.includes(city) ? 'primary' : 'default'} onClick={() => handleChipToggle('location', city)} />
               ))}
             </Box>
           </Box>

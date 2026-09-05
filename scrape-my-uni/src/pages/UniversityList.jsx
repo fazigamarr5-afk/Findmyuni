@@ -4,6 +4,7 @@ import { universityService } from '../services/api.service';
 import SearchBar from '../components/SearchBar';
 import UniversityCard from '../components/UniversityCard';
 import FilterPanel from '../components/FilterPanel';
+import MobileFilterModal from '../components/MobileFilterModal';
 import { 
   CircularProgress, 
   Alert, 
@@ -21,7 +22,10 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Divider
+  Divider,
+  Badge,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import { supabase } from '../supabase';
 import { FilterAlt } from '@mui/icons-material';
@@ -38,7 +42,10 @@ const UniversityList = () => {
   const [initialFilterApplied, setInitialFilterApplied] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const observer = useRef();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [filters, setFilters] = useState({
     programType: [],
     degreeLevel: [],
@@ -55,6 +62,15 @@ const UniversityList = () => {
   });
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Calculate active filter count
+  const activeFilterCount = [
+    ...filters.sector,
+    ...filters.province,
+    ...filters.location,
+    ...filters.programType,
+    ...(filters.admissionOpen ? ['admission'] : [])
+  ].length;
 
   // Last element ref for infinite scrolling
   const lastUniversityElementRef = useCallback(node => {
@@ -77,7 +93,6 @@ const UniversityList = () => {
   // Handle navigation state when component mounts or location changes
   useEffect(() => {
     if (location.state && !initialFilterApplied && universities.length > 0) {
-      console.log('NAVIGATION STATE RECEIVED:', location.state);
       
       // Apply filters from navigation state
       const newFilters = { ...filters };
@@ -85,14 +100,12 @@ const UniversityList = () => {
       
       Object.entries(location.state).forEach(([key, value]) => {
         if (key in filters && value) {
-          console.log(`Setting filter: ${key} = ${JSON.stringify(value)}`);
           newFilters[key] = value;
           hasFilters = true;
         }
       });
       
       if (hasFilters) {
-        console.log('APPLYING FILTERS FROM NAVIGATION:', newFilters);
         setFilters(newFilters);
         setInitialFilterApplied(true);
         
@@ -144,10 +157,6 @@ const UniversityList = () => {
             };
           });
           
-          // Debug: Log the data to see if location field exists
-          console.log('Supabase university data (first 3 items):', data.slice(0, 3));
-          console.log('Location fields exist in data:', data.some(uni => uni.location));
-          
           if (data.length === 0) {
             throw new Error('No universities found in Supabase');
           }
@@ -181,9 +190,6 @@ const UniversityList = () => {
       setLoading(true);
       
       // Print debug info about the search
-      console.log('==== SEARCH STARTED ====');
-      console.log('Query:', query);
-      console.log('Filters:', customFilters || filters);
       
       // Use provided custom filters or current filters
       const activeFilters = customFilters || filters;
@@ -204,48 +210,28 @@ const UniversityList = () => {
       });
       
       if (!query && !hasActiveFilters) {
-        console.log('No active filters, showing all universities');
         setFilteredUniversities(universities);
         setLoading(false);
         return;
       } else {
-        console.log('Active filters detected, applying filtering');
       }
       
       // Debug filters state
-      console.log('Applying filters:', JSON.stringify(activeFilters, null, 2));
       
       // Check for abort signal
       if (abortSignal && abortSignal.aborted) {
-        console.log('Search aborted');
         return;
       }
       
       // Always use local filtering to ensure filters are correctly applied
-      console.log('Using local filtering');
       results = filterUniversitiesLocally(universities, query, activeFilters);
       
       // Check for abort signal again
       if (abortSignal && abortSignal.aborted) {
-        console.log('Search aborted during processing');
         return;
       }
       
-      // Debug: Log filtered results
-      console.log('Filtered results count:', results.length);
-      
       if (Array.isArray(results)) {
-        if (results.length === 0) {
-          console.log('No universities matched the filter criteria');
-          console.log('Check your filter values:', JSON.stringify(activeFilters, null, 2));
-        } else {
-          console.log('Filter successfully applied, showing filtered results');
-          // Show first few results for debugging
-          results.slice(0, 3).forEach(uni => {
-            console.log(`Result: ${uni.name}, Sector: ${uni.sector || uni.basic_info?.Sector || 'unknown'}`);
-          });
-        }
-        
         // Apply default deadline-based sorting
         const sortedResults = sortDataByDeadline(results);
         setFilteredUniversities(sortedResults);
@@ -262,14 +248,12 @@ const UniversityList = () => {
       setFilteredUniversities(universities);
     } finally {
       setLoading(false);
-      console.log('==== SEARCH COMPLETED ====');
     }
   };
 
   // Helper function to filter universities locally
   const filterUniversitiesLocally = (data, query, activeFilters) => {
     // Print raw filter values
-    console.log('FILTERING WITH:', {
       sector: activeFilters.sector,
       location: activeFilters.location,
       province: activeFilters.province,
@@ -279,19 +263,12 @@ const UniversityList = () => {
     // Examine sample university data to understand structure
     if (data.length > 0) {
       const sampleUni = data[0];
-      console.log('SAMPLE UNIVERSITY DATA:', {
         name: sampleUni.name,
         location: sampleUni.basic_info?.Location,
         sector: sampleUni.basic_info?.Sector,
         programs: sampleUni.programs ? Object.keys(sampleUni.programs) : []
       });
     }
-
-    // Show the sector values in the first 10 universities
-    console.log('SECTOR VALUES IN DATA:');
-    data.slice(0, 10).forEach(uni => {
-      console.log(`"${uni.name}" - Sector: "${uni.basic_info?.Sector || 'missing'}"`);
-    });
 
     // Start with all data
     let results = [...data];
@@ -302,7 +279,6 @@ const UniversityList = () => {
     // Filter by sector (public/private)
     if (activeFilters.sector && activeFilters.sector.length > 0) {
       const sectorFilters = activeFilters.sector.map(s => s.toLowerCase());
-      console.log('Filtering by sectors:', sectorFilters);
       
       results = results.filter(uni => {
         // Get sector from basic_info.Sector
@@ -315,7 +291,6 @@ const UniversityList = () => {
         // Try exact match first
         if (sectorFilters.includes(sectorLower)) {
           matches = true;
-          console.log(`University "${uni.name}" sector "${sectorValue}" - ✓ EXACT MATCH`);
         }
         // Then try contains match (for partial matches)
         else {
@@ -328,33 +303,28 @@ const UniversityList = () => {
                   sectorLower.includes("govt") || 
                   sectorLower === "state") {
                 matches = true;
-                console.log(`University "${uni.name}" sector "${sectorValue}" - ✓ PUBLIC MATCH (special handling)`);
                 break;
               }
             } 
             // Normal contains check for other sectors
             else if (sectorLower.includes(filter)) {
               matches = true;
-              console.log(`University "${uni.name}" sector "${sectorValue}" - ✓ CONTAINS MATCH`);
               break;
             }
           }
         }
         
         if (!matches) {
-          console.log(`University "${uni.name}" sector "${sectorValue}" - ✗ NO MATCH`);
         }
         
         return matches;
       });
       
-      console.log(`Sector filter: ${totalBefore} → ${results.length} universities`);
     }
 
     // Filter by location (city/region)
     if (activeFilters.location && activeFilters.location.length > 0) {
       const locationFilters = activeFilters.location.map(l => l.toLowerCase());
-      console.log('Filtering by locations:', locationFilters);
       
       const beforeCount = results.length;
       results = results.filter(uni => {
@@ -370,7 +340,6 @@ const UniversityList = () => {
           if (locationLower.includes(city)) {
             // If filtering for this priority city, it's a match
             if (locationFilters.includes(city)) {
-              console.log(`University "${uni.name}" location "${locationValue}" - ✓ PRIORITY CITY MATCH (${city})`);
               return true;
             }
           }
@@ -389,18 +358,15 @@ const UniversityList = () => {
         const matches = locationFilters.some(filter => city.includes(filter) || filter.includes(city));
         
         // Debug output
-        console.log(`University "${uni.name}" city "${city}" - ${matches ? '✓ MATCH' : '✗ NO MATCH'}`);
         
         return matches;
       });
       
-      console.log(`Location filter: ${beforeCount} → ${results.length} universities`);
     }
 
     // Filter by province (which is part of the Location field, e.g., "Hyderabad,Sindh")
     if (activeFilters.province && activeFilters.province.length > 0) {
       const provinceFilters = activeFilters.province.map(p => p.toLowerCase());
-      console.log('Filtering by provinces:', provinceFilters);
       
       const beforeCount = results.length;
       results = results.filter(uni => {
@@ -412,13 +378,11 @@ const UniversityList = () => {
         if (locationLower.includes('islamabad')) {
           // If filtering for Islamabad, match as special case
           if (provinceFilters.includes('islamabad')) {
-            console.log(`University "${uni.name}" location "${locationValue}" - ✓ SPECIAL CITY MATCH`);
             return true;
           }
           
           // Islamabad universities should NOT match Punjab even if labeled as "Islamabad,Punjab"
           if (provinceFilters.includes('punjab')) {
-            console.log(`University "${uni.name}" location "${locationValue}" - ✗ IGNORED FOR PUNJAB (ISLAMABAD)`);
             return false;
           }
         }
@@ -436,18 +400,15 @@ const UniversityList = () => {
         const matches = provinceFilters.some(filter => province.includes(filter));
         
         // Debug output
-        console.log(`University "${uni.name}" province "${province}" - ${matches ? '✓ MATCH' : '✗ NO MATCH'}`);
         
         return matches;
       });
       
-      console.log(`Province filter: ${beforeCount} → ${results.length} universities`);
     }
 
     // Filter by program type (BS, MS, etc.)
     if (activeFilters.programType && activeFilters.programType.length > 0) {
       const programFilters = activeFilters.programType.map(p => p.toLowerCase());
-      console.log('Filtering by programs:', programFilters);
       
       const beforeCount = results.length;
       results = results.filter(uni => {
@@ -464,12 +425,10 @@ const UniversityList = () => {
         });
         
         // Debug output
-        console.log(`University "${uni.name}" programs ${JSON.stringify(programCategories)} - ${matches ? '✓ MATCH' : '✗ NO MATCH'}`);
         
         return matches;
       });
       
-      console.log(`Program filter: ${beforeCount} → ${results.length} universities`);
     }
 
     // Apply text search if provided
@@ -493,11 +452,9 @@ const UniversityList = () => {
         return false;
       });
       
-      console.log(`Text search filter: ${beforeCount} → ${results.length} universities`);
     }
 
     // Final results
-    console.log(`FILTERING COMPLETE: ${totalBefore} → ${results.length} universities`);
     return results;
   };
 
@@ -562,11 +519,9 @@ const UniversityList = () => {
   };
 
   const handleFilterChange = (newFilters) => {
-    console.log('Filter change called with:', newFilters);
     
     // Only proceed if we're not already loading
     if (loading) {
-      console.log('Ignoring filter change while loading');
       return;
     }
     
@@ -577,7 +532,6 @@ const UniversityList = () => {
         ...newFilters,
       };
       
-      console.log('UPDATED FILTERS:', updatedFilters);
       
       // Apply filters immediately
       handleSearch(updatedFilters.searchQuery || prev.searchQuery, updatedFilters);
@@ -668,34 +622,84 @@ const UniversityList = () => {
 
       <SearchBar onSearch={handleSearch} initialValue={filters.searchQuery} />
 
-      <Paper sx={{ p: 3, mb: 4 }}>
-        <Box sx={{ my: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center' }}>
-              <FilterAlt sx={{ mr: 1 }} />
-              Filters
-            </Typography>
-            <Button 
-              variant={viewMode === 'grid' ? "contained" : "outlined"} 
-              onClick={() => handleViewModeChange('grid')}
-              size="small"
-              sx={{ minWidth: 100 }}
-            >
-              Grid View
-            </Button>
-            <Button 
-              variant={viewMode === 'table' ? "contained" : "outlined"} 
-              onClick={() => handleViewModeChange('table')}
-              size="small"
-              sx={{ minWidth: 100 }}
-            >
-              Table View
-            </Button>
+      {/* Desktop Filter Panel */}
+      {!isMobile && (
+        <Paper sx={{ p: 3, mb: 4 }}>
+          <Box sx={{ my: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center' }}>
+                <FilterAlt sx={{ mr: 1 }} />
+                Filters
+              </Typography>
+              <Button 
+                variant={viewMode === 'grid' ? "contained" : "outlined"} 
+                onClick={() => handleViewModeChange('grid')}
+                size="small"
+                sx={{ minWidth: 100 }}
+              >
+                Grid View
+              </Button>
+              <Button 
+                variant={viewMode === 'table' ? "contained" : "outlined"} 
+                onClick={() => handleViewModeChange('table')}
+                size="small"
+                sx={{ minWidth: 100 }}
+              >
+                Table View
+              </Button>
+            </Box>
           </Box>
-        </Box>
 
-        <FilterPanel filters={filters} onFilterChange={handleFilterChange} />
-      </Paper>
+          <FilterPanel filters={filters} onFilterChange={handleFilterChange} />
+        </Paper>
+      )}
+
+      {/* Mobile Filter Button */}
+      {isMobile && (
+        <Box sx={{ mb: 3, display: 'flex', gap: 2 }}>
+          <Button
+            variant="contained"
+            startIcon={<FilterAlt />}
+            onClick={() => setMobileFilterOpen(true)}
+            sx={{ 
+              flex: 1,
+              minHeight: '48px',
+              fontSize: '1rem'
+            }}
+          >
+            <Badge 
+              badgeContent={activeFilterCount} 
+              color="secondary"
+              sx={{ mr: 1 }}
+            >
+              Filters
+            </Badge>
+          </Button>
+          <Button 
+            variant={viewMode === 'grid' ? "contained" : "outlined"} 
+            onClick={() => handleViewModeChange('grid')}
+            sx={{ minWidth: '48px', minHeight: '48px' }}
+          >
+            Grid
+          </Button>
+          <Button 
+            variant={viewMode === 'table' ? "contained" : "outlined"} 
+            onClick={() => handleViewModeChange('table')}
+            sx={{ minWidth: '48px', minHeight: '48px', display: { xs: 'none', sm: 'flex' } }}
+          >
+            Table
+          </Button>
+        </Box>
+      )}
+
+      {/* Mobile Filter Modal */}
+      <MobileFilterModal
+        isOpen={mobileFilterOpen}
+        onClose={() => setMobileFilterOpen(false)}
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        activeFilterCount={activeFilterCount}
+      />
 
       {loading && universities.length > 0 ? (
         <div className="flex justify-center my-4">
@@ -718,7 +722,8 @@ const UniversityList = () => {
                   key={university.id || Math.random().toString()} 
                   xs={12} 
                   sm={6} 
-                  md={6}
+                  md={4}
+                  lg={3}
                   ref={index === displayCount - 1 ? lastUniversityElementRef : null}
                 >
                   <UniversityCard
