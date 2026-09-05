@@ -12,4 +12,24 @@ const api = axios.create({
   }
 });
 
+// A real API answers with JSON. If a 200 comes back with any other content
+// type (e.g. hosting rewrites serving index.html), reject it so callers hit
+// their catch block and fall back to Supabase instead of parsing HTML as data.
+api.interceptors.response.use(
+  (response) => {
+    const data = response.data;
+    const contentType = String(response.headers?.['content-type'] || '');
+    // Only reject when there is actually a non-JSON body (HTML pages, text).
+    // Empty bodies (204/205) and pre-parsed JSON objects pass through.
+    const hasHtmlishBody = typeof data === 'string' && data.trim() !== '';
+    if (hasHtmlishBody && !contentType.includes('application/json')) {
+      return Promise.reject(
+        new Error(`Non-JSON API response (content-type: ${contentType || 'none'})`)
+      );
+    }
+    return response;
+  },
+  (error) => Promise.reject(error)
+);
+
 export default api; 
