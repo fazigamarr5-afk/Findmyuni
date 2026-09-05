@@ -118,7 +118,7 @@ const CmsPage = () => {
         {metaDesc && <meta property="og:description" content={metaDesc} />}
         <meta property="og:type" content="website" />
         {page.cover_image && <meta property="og:image" content={page.cover_image} />}
-        <link rel="canonical" href={`https://findmyuni.com/pages/${page.slug}`} />
+        <link rel="canonical" href={`https://findmyuni.site/pages/${page.slug}`} />
       </Helmet>
 
       <Container maxWidth="md" sx={{ py: 4 }}>

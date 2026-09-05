@@ -178,7 +178,7 @@ const BlogPost = () => {
         <meta name="twitter:title" content={metaTitle} />
         <meta name="twitter:description" content={metaDesc} />
         {post.cover_image && <meta name="twitter:image" content={post.cover_image} />}
-        <link rel="canonical" href={`https://findmyuni.com/blog/${post.slug}`} />
+        <link rel="canonical" href={`https://findmyuni.site/blog/${post.slug}`} />
         <script type="application/ld+json">
           {JSON.stringify({
             '@context': 'https://schema.org',
