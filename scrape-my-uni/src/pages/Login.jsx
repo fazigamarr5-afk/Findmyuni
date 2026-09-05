@@ -20,6 +20,18 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // If Google sign-in returns with OAuth error params in the URL, show them
+  // as a message and scrub the address bar so refresh/revisit stays clean.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const err = url.searchParams.get('error_description') || url.searchParams.get('error');
+    if (err) {
+      setError(decodeURIComponent(err).replace(/+/g, ' '));
+      for (const k of ['error', 'error_description', 'error_code', 'state']) url.searchParams.delete(k);
+      window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+    }
+  }, []);
+
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
