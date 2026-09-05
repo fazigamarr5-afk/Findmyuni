@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { Helmet } from "react-helmet-async"
 import { useAuth } from "../context/AuthContext"
+import { useLanguage } from "../context/LanguageContext"
 import { universityService, favoritesService } from "../services/api.service"
 import { supabase } from "../supabase"
 import UniversityReviews from "../components/UniversityReviews"
@@ -12,6 +13,7 @@ const UniversityDetail = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const { currentUser } = useAuth()
+  const { t } = useLanguage()
   const [university, setUniversity] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -136,6 +138,7 @@ const UniversityDetail = () => {
   }
 
   const getInitials = (name) => {
+    if (!name) return 'U';
     return name.split(" ").filter(w => w.length > 2).slice(0, 2).map(w => w[0]).join("").toUpperCase()
   }
 
@@ -180,11 +183,11 @@ const UniversityDetail = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Helmet>
-        <title>{university.name} - Programs, Rankings & Admissions | FindMyUni</title>
-        <meta name="description" content={`${university.name} in ${bi.Location || 'Pakistan'}. ${programsData ? programsData.bs.length + programsData.ms.length + programsData.phd.length + ' programs' : ''} across BS, MS, PhD. ${rankingsData?.national ? 'Ranked #' + rankingsData.national + ' in Pakistan.' : ''} ${bi.Sector || ''} university. Admissions open now.`} />
-        <meta property="og:title" content={`${university.name} - FindMyUni`} />
-        <meta property="og:description" content={`${university.name} in ${bi.Location || 'Pakistan'}. Programs, rankings, scholarships and admission details.`} />
-        <link rel="canonical" href={`https://findmyuni.pk/universities/${id}`} />
+        <title>{`${university?.name || 'University'} - Programs, Rankings & Admissions | FindMyUni`}</title>
+        <meta name="description" content={`${university?.name || 'University'} in ${bi.Location || 'Pakistan'}. ${programsData ? programsData.bs.length + programsData.ms.length + programsData.phd.length + ' programs' : ''} across BS, MS, PhD. ${rankingsData?.national ? 'Ranked #' + rankingsData.national + ' in Pakistan.' : ''} ${bi.Sector || ''} university. Admissions open now.`} />
+        <meta property="og:title" content={`${university?.name || 'University'} - FindMyUni`} />
+        <meta property="og:description" content={`${university?.name || 'University'} in ${bi.Location || 'Pakistan'}. Programs, rankings, scholarships and admission details.`} />
+        <link rel="canonical" href={`https://findmyuni.site/universities/${id}`} />
       </Helmet>
       {/* Hero Banner */}
       <div className="bg-gradient-to-r from-green-700 via-green-600 to-emerald-500 text-white">
@@ -201,7 +204,7 @@ const UniversityDetail = () => {
             <div className="flex-1">
               <div className="flex items-center gap-3">
                 <h1 className="text-2xl md:text-4xl font-bold mb-3 leading-tight flex-1">{university.name}</h1>
-                <Tooltip title={isFavorited ? "Remove from favorites" : "Add to favorites"}>
+                <Tooltip title={isFavorited ? t('removeFavorite') : t('addFavorite')}>
                   <IconButton onClick={handleFavoriteClick} sx={{ color: isFavorited ? "#f59e0b" : "rgba(255,255,255,0.7)", mb: 2 }}>
                     {isFavorited ? <StarOutline sx={{ fontSize: 32 }} /> : <StarBorderOutlined sx={{ fontSize: 32 }} />}
                   </IconButton>
@@ -262,7 +265,7 @@ const UniversityDetail = () => {
             {university.description && (
               <section className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <h2 className="text-xl font-bold text-gray-800 mb-3 flex items-center gap-2">
-                  <SchoolOutlined className="text-green-600" /> About {university.name}
+                  <SchoolOutlined className="text-green-600" /> {t('about')} {university.name}
                 </h2>
                 <p className="text-gray-600 leading-relaxed">{university.description}</p>
               </section>
@@ -273,7 +276,7 @@ const UniversityDetail = () => {
               <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="px-6 pt-5 pb-0">
                   <h2 className="text-xl font-bold text-gray-800 mb-1 flex items-center gap-2">
-                    <MenuBookOutlined className="text-green-600" /> Programs Offered
+                    <MenuBookOutlined className="text-green-600" /> {t('programs')}
                   </h2>
                   <p className="text-sm text-gray-500 mb-3">{programsData.bs.length + programsData.ms.length + programsData.phd.length} programs across all levels</p>
                 </div>
@@ -328,7 +331,7 @@ const UniversityDetail = () => {
             {scholarshipsData && (
               <section className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                  <WorkspacePremiumOutlined className="text-green-600" /> Scholarships
+                  <WorkspacePremiumOutlined className="text-green-600" /> {t('scholarships')}
                 </h2>
                 {scholarshipsData.type === "list" && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -442,11 +445,11 @@ const UniversityDetail = () => {
                 onClick={handleApplyClick}
                 className="w-full py-3.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-green-200 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
               >
-                {university.apply_link ? "Apply Now →" : "Start Application →"}
+                {university.apply_link ? `${t('applyNow')} →` : `${t('applyNow')} →`}
               </button>
               {university.apply_link && (
                 <a href={university.apply_link} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1 mt-3 text-sm text-blue-600 hover:underline">
-                  <OpenInNew fontSize="small" /> Visit Official Website
+                  <OpenInNew fontSize="small" /> {t('visitWebsite')}
                 </a>
               )}
 
@@ -486,7 +489,7 @@ const UniversityDetail = () => {
       {/* Breadcrumb Back */}
       <div className="max-w-6xl mx-auto px-4 pb-8">
         <button onClick={() => navigate("/universities")} className="flex items-center gap-1 text-sm text-green-600 hover:text-green-700 transition">
-          ← Back to All Universities
+          {t('backToAll')}
         </button>
       </div>
     </div>

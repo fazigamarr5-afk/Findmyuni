@@ -135,11 +135,11 @@ const BlogCreate = () => {
         />
         <Divider sx={{ my: 2 }} />
         <Box display="flex" gap={0.5} mb={1}>
-          <BoldIcon fontSize="small" sx={{ cursor: 'pointer', p: 0.5 }} onClick={() => insertMarkdown('**', '**')} />
-          <ItalicIcon fontSize="small" sx={{ cursor: 'pointer', p: 0.5 }} onClick={() => insertMarkdown('*', '*')} />
-          <ListIcon fontSize="small" sx={{ cursor: 'pointer', p: 0.5 }} onClick={() => insertMarkdown('- ', '')} />
-          <QuoteIcon fontSize="small" sx={{ cursor: 'pointer', p: 0.5 }} onClick={() => insertMarkdown('> ', '')} />
-          <CodeIcon fontSize="small" sx={{ cursor: 'pointer', p: 0.5 }} onClick={() => insertMarkdown('```\n', '\n```')} />
+          <BoldIcon fontSize="small" sx={{ cursor: 'pointer', p: 0.5, display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '44px', minHeight: '44px' }} onClick={() => insertMarkdown('**', '**')} />
+          <ItalicIcon fontSize="small" sx={{ cursor: 'pointer', p: 0.5, display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '44px', minHeight: '44px' }} onClick={() => insertMarkdown('*', '*')} />
+          <ListIcon fontSize="small" sx={{ cursor: 'pointer', p: 0.5, display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '44px', minHeight: '44px' }} onClick={() => insertMarkdown('- ', '')} />
+          <QuoteIcon fontSize="small" sx={{ cursor: 'pointer', p: 0.5, display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '44px', minHeight: '44px' }} onClick={() => insertMarkdown('> ', '')} />
+          <CodeIcon fontSize="small" sx={{ cursor: 'pointer', p: 0.5, display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '44px', minHeight: '44px' }} onClick={() => insertMarkdown('```\n', '\n```')} />
           <Typography variant="caption" color="textSecondary" sx={{ ml: 1, alignSelf: 'center' }}>
             ~{formData.content.split(/\s+/).filter(Boolean).length} words
           </Typography>

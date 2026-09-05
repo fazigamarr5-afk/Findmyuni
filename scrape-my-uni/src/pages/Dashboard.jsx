@@ -22,10 +22,25 @@ const Dashboard = () => {
   const [reviews, setReviews] = useState([]);
   const [deadlines, setDeadlines] = useState([]);
   const [error, setError] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    if (currentUser) fetchDashboardData();
+    if (currentUser) {
+      fetchDashboardData();
+      checkAdmin();
+    }
   }, [currentUser]);
+
+  const checkAdmin = async () => {
+    try {
+      const { data } = await supabase
+        .from('admins')
+        .select('id')
+        .eq('email', currentUser.email.toLowerCase())
+        .maybeSingle();
+      setIsAdmin(!!data);
+    } catch { /* not admin */ }
+  };
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -142,10 +157,16 @@ const Dashboard = () => {
         <Avatar sx={{ width: 56, height: 56, bgcolor: 'primary.main', fontSize: 24 }}>
           {currentUser.email?.charAt(0).toUpperCase() || 'U'}
         </Avatar>
-        <Box>
+        <Box sx={{ flex: 1 }}>
           <Typography variant="h4" fontWeight="bold">My Dashboard</Typography>
           <Typography color="text.secondary">Welcome back, {currentUser.email?.split('@')[0]}</Typography>
         </Box>
+        {isAdmin && (
+          <Box display="flex" gap={1}>
+            <Button variant="outlined" size="small" onClick={() => navigate('/blog/create')}>✍️ Write Blog</Button>
+            <Button variant="contained" size="small" onClick={() => navigate('/admin/dashboard')}>⚙️ Admin Panel</Button>
+          </Box>
+        )}
       </Box>
 
       {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
@@ -212,7 +233,7 @@ const Dashboard = () => {
                               </Typography>
                             </Box>
                           </Box>
-                          <IconButton size="small" color="error" onClick={(e) => { e.stopPropagation(); removeFavorite(fav.id, uni.id); }}>
+                          <IconButton size="small" color="error" sx={{ minWidth: '44px', minHeight: '44px' }} onClick={(e) => { e.stopPropagation(); removeFavorite(fav.id, uni.id); }}>
                             <DeleteIcon fontSize="small" />
                           </IconButton>
                         </Box>

@@ -15,6 +15,7 @@ import {
   Clear as ClearIcon,
   School as SchoolIcon
 } from '@mui/icons-material';
+import { useLanguage } from '../context/LanguageContext';
 
 const EXAMPLE_SEARCHES = [
   "Computer Science", 
@@ -25,7 +26,9 @@ const EXAMPLE_SEARCHES = [
   "Lahore"
 ];
 
-const SearchBar = ({ onSearch, initialValue = '', placeholder = 'Search for universities, programs, or locations' }) => {
+const SearchBar = ({ onSearch, initialValue = '', placeholder }) => {
+  const { t } = useLanguage();
+  const effectivePlaceholder = placeholder || t('searchPlaceholder');
   const [searchTerm, setSearchTerm] = useState(initialValue);
   const [isSearching, setIsSearching] = useState(false);
   const [showExamples, setShowExamples] = useState(false);
@@ -81,13 +84,18 @@ const SearchBar = ({ onSearch, initialValue = '', placeholder = 'Search for univ
           boxShadow: '0 4px 6px rgba(0,0,0,0.07)'
         }}
       >
-        <IconButton sx={{ p: 1 }} disabled={isSearching}>
+        <IconButton sx={{ p: 1, minWidth: '44px', minHeight: '44px' }} disabled={isSearching}>
           <SchoolIcon color="primary" />
         </IconButton>
         
         <InputBase
-          sx={{ ml: 1, flex: 1, fontSize: '1.05rem' }}
-          placeholder={placeholder}
+          sx={{ 
+            ml: 1, 
+            flex: 1, 
+            fontSize: { xs: '1rem', md: '1.05rem' },
+            minHeight: '44px'
+          }}
+          placeholder={effectivePlaceholder}
           value={searchTerm}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
@@ -100,7 +108,9 @@ const SearchBar = ({ onSearch, initialValue = '', placeholder = 'Search for univ
             onClick={handleClear} 
             sx={{ 
               visibility: searchTerm ? 'visible' : 'hidden',
-              p: 1
+              p: 1,
+              minWidth: '44px',
+              minHeight: '44px'
             }}
             disabled={isSearching}
           >
@@ -108,11 +118,19 @@ const SearchBar = ({ onSearch, initialValue = '', placeholder = 'Search for univ
           </IconButton>
         )}
         
-        <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+        <Divider sx={{ height: 28, m: 0.5, display: { xs: 'none', sm: 'block' } }} orientation="vertical" />
         
         <IconButton 
           color="primary" 
-          sx={{ p: 1, bgcolor: 'primary.main', color: 'white', borderRadius: 1, '&:hover': { bgcolor: 'primary.dark' } }} 
+          sx={{ 
+            p: 1, 
+            minWidth: '44px', 
+            minHeight: '44px',
+            bgcolor: 'primary.main', 
+            color: 'white', 
+            borderRadius: 1, 
+            '&:hover': { bgcolor: 'primary.dark' } 
+          }} 
           onClick={handleSearch}
           disabled={isSearching || !searchTerm.trim()}
         >
@@ -139,6 +157,10 @@ const SearchBar = ({ onSearch, initialValue = '', placeholder = 'Search for univ
                 size="medium"
                 color="default"
                 variant="outlined"
+                sx={{ 
+                  minHeight: '40px',
+                  fontSize: { xs: '0.85rem', md: '0.9rem' }
+                }}
               />
             ))}
           </Box>

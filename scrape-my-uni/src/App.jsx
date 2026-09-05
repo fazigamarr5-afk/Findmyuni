@@ -6,13 +6,10 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { supabase } from './supabase';
 import PageTransition from './components/UI/PageTransition';
 import LoadingSpinner from './components/UI/LoadingSpinner';
-import LanguageToggle from './components/LanguageToggle';
 import NavBar from './components/NavBar';
 import Footer from './components/Footer';
 import PageLoadingBar from './components/UI/PageLoadingBar';
-import { ThemeProvider, createTheme, CssBaseline, IconButton, Box } from '@mui/material';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
+import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 
 // Eagerly loaded components (critical UI)
 import Toast from './components/Toast';
@@ -40,6 +37,8 @@ const UniversityCompare = lazy(() => import('./components/UniversityCompare.jsx'
 const DeadlineCalendar = lazy(() => import('./pages/DeadlineCalendar.jsx'));
 const BlogList = lazy(() => import('./pages/BlogList.jsx'));
 const BlogPost = lazy(() => import('./pages/BlogPost.jsx'));
+const CmsPage = lazy(() => import('./pages/CmsPage.jsx'));
+const BlogCreate = lazy(() => import('./pages/BlogCreate.jsx'));
 const UIExamples = lazy(() => import('./pages/UIExamples.jsx'));
 
 // Lazy-load non-critical components
@@ -155,14 +154,7 @@ function App() {
           <div className="flex flex-col min-h-screen">
             <div className="sticky top-0 z-50">
               <PageLoadingBar />
-              <NavBar />
-              {/* Floating toggle buttons */}
-              <Box sx={{ position: 'fixed', top: 16, right: 16, zIndex: 2000, display: 'flex', gap: 1 }}>
-                <LanguageToggle />
-                <IconButton onClick={toggleTheme} color="inherit" sx={{ bgcolor: 'background.paper', boxShadow: 2 }}>
-                  {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-                </IconButton>
-              </Box>
+              <NavBar mode={mode} onToggleTheme={toggleTheme} />
             </div>
             <main className="flex-grow">
               <ScrollToTop />
@@ -182,6 +174,15 @@ function App() {
                     <Route path="/deadlines" element={<DeadlineCalendar />} />
                     <Route path="/blog" element={<BlogList />} />
                     <Route path="/blog/:slug" element={<BlogPost />} />
+                    <Route path="/pages/:slug" element={<CmsPage />} />
+                    <Route
+                      path="/blog/create"
+                      element={
+                        <ProtectedRoute>
+                          <BlogCreate />
+                        </ProtectedRoute>
+                      }
+                    />
                     <Route path="/ui-examples" element={<UIExamples />} />
                     
                     {/* Protected Routes */}

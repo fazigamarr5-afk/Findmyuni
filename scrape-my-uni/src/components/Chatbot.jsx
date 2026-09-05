@@ -356,17 +356,17 @@ const Chatbot = () => {
           </Box>
           <Box>
             <Tooltip title={isFullscreen ? "Exit fullscreen" : "Fullscreen mode"}>
-              <IconButton size="small" color="inherit" onClick={toggleFullscreen}>
+              <IconButton size="small" color="inherit" sx={{ minWidth: '44px', minHeight: '44px' }} onClick={toggleFullscreen}>
                 {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
               </IconButton>
             </Tooltip>
             <Tooltip title="Clear chat">
-              <IconButton size="small" color="inherit" onClick={handleClearChat}>
+              <IconButton size="small" color="inherit" sx={{ minWidth: '44px', minHeight: '44px' }} onClick={handleClearChat}>
                 <RefreshIcon />
               </IconButton>
             </Tooltip>
             {!isFullscreen && (
-              <IconButton size="small" color="inherit" onClick={toggleChat}>
+              <IconButton size="small" color="inherit" sx={{ minWidth: '44px', minHeight: '44px' }} onClick={toggleChat}>
                 <CloseIcon />
               </IconButton>
             )}
@@ -813,7 +813,8 @@ const Chatbot = () => {
             bottom: 90,
             right: 20,
             width: { xs: 'calc(100% - 40px)', sm: 400 },
-            height: 500,
+            // Cap height on short viewports so the header never clips off-screen
+            height: { xs: 'min(500px, calc(100dvh - 120px))', sm: 500 },
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',

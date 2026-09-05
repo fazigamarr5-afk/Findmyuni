@@ -178,6 +178,11 @@ const UniversityCard = ({ university, onClick, index = 0 }) => {
             flexDirection: 'column', 
             alignItems: 'stretch', 
             height: '100%',
+            minHeight: '44px',
+            '&:active': {
+              transform: 'scale(0.98)',
+              transition: 'transform 0.1s'
+            }
           }}
         >
           <Box 
@@ -455,6 +460,10 @@ const UniversityCard = ({ university, onClick, index = 0 }) => {
           <Box 
             sx={{ 
               p: 2, 
+              minHeight: '48px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               bgcolor: isDarkMode ? theme.palette.background.default : '#fafafa', 
               borderTop: `1px solid ${isDarkMode ? theme.palette.divider : '#e0e0e0'}`,
               transition: 'background-color 0.3s ease',

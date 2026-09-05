@@ -95,6 +95,9 @@ export function AuthProvider({ children }) {
       const { data, error: authError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
+          // Full-page redirect (not popup): popups are blocked in many mobile/
+          // embedded browsers, which silently breaks the popup-based flow.
+          redirect: true,
           redirectTo: window.location.origin,
         },
       });

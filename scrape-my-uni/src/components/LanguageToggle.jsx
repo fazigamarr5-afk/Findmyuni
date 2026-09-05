@@ -12,8 +12,8 @@ const LanguageToggle = () => {
         sx={{
           bgcolor: 'background.paper',
           boxShadow: 2,
-          width: 40,
-          height: 40,
+          width: 44,
+          height: 44,
           fontWeight: 'bold',
           fontSize: '0.85rem',
         }}

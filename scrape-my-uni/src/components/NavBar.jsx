@@ -2,10 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FaBars, FaTimes, FaUserCircle, FaChevronRight } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useLanguage } from "../context/LanguageContext.jsx";
 import { supabase } from '../supabase';
 import { useTheme } from '@mui/material/styles';
+import { Brightness4 as Brightness4Icon, Brightness7 as Brightness7Icon } from '@mui/icons-material';
+import LanguageToggle from './LanguageToggle';
 
-const NavBar = () => {
+const NavBar = ({ mode, onToggleTheme }) => {
   const { isAuthenticated, currentUser, logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const location = useLocation();
@@ -15,6 +18,7 @@ const NavBar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [profileImageError, setProfileImageError] = useState(false);
   const theme = useTheme(); // Get the current theme
+  const { t } = useLanguage();
   
   // Get initials for avatar placeholder
   const getInitials = () => {
@@ -82,13 +86,13 @@ const NavBar = () => {
   }, [currentUser]);
 
   const navLinks = [
-    { text: 'Home', path: '/' },
-    { text: 'Universities', path: '/universities' },
-    { text: 'Deadlines', path: '/deadlines' },
-    { text: 'Blog', path: '/blog' },
-    { text: 'Compare', path: '/compare' },
-    { text: 'About', path: '/about' },
-    { text: 'Contact', path: '/contact' }
+    { text: 'Home', path: '/', key: 'home' },
+    { text: 'Universities', path: '/universities', key: 'universities' },
+    { text: 'Deadlines', path: '/deadlines', key: 'deadlines' },
+    { text: 'Blog', path: '/blog', key: 'blog' },
+    { text: 'Compare', path: '/compare', key: 'compare' },
+    { text: 'About', path: '/about', key: 'about' },
+    { text: 'Contact', path: '/contact', key: 'contact' }
   ];
 
   const handleLogout = () => {
@@ -153,6 +157,27 @@ const NavBar = () => {
     >
       <div className="max-w-screen-xl mx-auto flex justify-between items-center px-4">
         <div className="flex items-center space-x-3">
+          {/* Mobile menu button - on the left so it's not crowded by language/theme buttons */}
+          <button
+            className="md:hidden flex items-center justify-center w-11 h-11 -ml-2 text-gray-700 hover:text-gray-900 focus:outline-none icon-btn"
+            onClick={() => setShowMobileMenu(true)}
+            aria-label="Open menu"
+          >
+            <svg
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+          </button>
           <img 
             src="/logo.png" 
             alt="Logo" 
@@ -172,28 +197,6 @@ const NavBar = () => {
           </Link>
         </div>
 
-        {/* Mobile menu button */}
-        <button
-          className="md:hidden flex items-center justify-center w-11 h-11 text-gray-700 hover:text-gray-900 focus:outline-none icon-btn"
-          onClick={() => setShowMobileMenu(true)}
-          aria-label="Open menu"
-        >
-          <svg
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          </svg>
-        </button>
-
         <nav className="hidden md:flex space-x-6 items-center">
           {navLinks.map((route, index) => (
             <Link
@@ -209,7 +212,7 @@ const NavBar = () => {
                   : ""
               }`}
             >
-              {route.text}
+              {t(route.key)}
               {location.pathname === route.path && (
                 <span className={`absolute bottom-0 left-0 w-full h-0.5 ${
                   theme.palette.mode === 'dark' ? 'bg-green-400' : 'bg-green-500'
@@ -249,7 +252,7 @@ const NavBar = () => {
                     } transition-all duration-200 border-l-2 border-transparent hover:border-l-2 hover:border-green-500 group`}
                   >
                     <div className="flex items-center justify-between">
-                      <span>Dashboard</span>
+                      <span>{t('dashboard')}</span>
                       <FaChevronRight className="opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-x-0 group-hover:translate-x-1" size={12} />
                     </div>
                   </Link>
@@ -263,7 +266,7 @@ const NavBar = () => {
                     } transition-all duration-200 border-l-2 border-transparent hover:border-l-2 hover:border-green-500 group`}
                   >
                     <div className="flex items-center justify-between">
-                      <span>My Profile</span>
+                      <span>{t('myProfile')}</span>
                       <FaChevronRight className="opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-x-0 group-hover:translate-x-1" size={12} />
                     </div>
                   </Link>
@@ -277,8 +280,8 @@ const NavBar = () => {
                           : 'text-purple-700 hover:bg-purple-50 hover:text-purple-800'
                       } transition-all duration-200 border-l-2 border-transparent hover:border-l-2 hover:border-purple-500 group`}
                     >
-                      <div className="flex items-center justify-between">
-                        <span>Admin Panel</span>
+                    <div className="flex items-center justify-between">
+                      <span>{t('adminPanel')}</span>
                         <FaChevronRight className="opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-x-0 group-hover:translate-x-1" size={12} />
                       </div>
                     </Link>
@@ -292,7 +295,7 @@ const NavBar = () => {
                     } transition-all duration-200 border-l-2 border-transparent hover:border-l-2 hover:border-red-500 group`}
                   >
                     <div className="flex items-center justify-between">
-                      <span>Logout</span>
+                      <span>{t('logout')}</span>
                       <FaChevronRight className="opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-x-0 group-hover:translate-x-1" size={12} />
                     </div>
                   </button>
@@ -304,10 +307,23 @@ const NavBar = () => {
               onClick={() => navigate("/login")}
               className="btn btn-primary hover-grow relative overflow-hidden btn-hover-effect"
             >
-              Login
+              {t('login')}
             </button>
           )}
         </nav>
+
+        {/* Language + theme controls */}
+        <div className="flex items-center gap-1">
+          <LanguageToggle />
+          <button
+            onClick={onToggleTheme}
+            aria-label={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            className={`w-11 h-11 rounded-full flex items-center justify-center shadow-md icon-btn ${mode === 'dark' ? 'text-gray-100' : 'text-gray-700'}`}
+            style={{ backgroundColor: theme.palette.background.paper }}
+          >
+            {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+          </button>
+        </div>
 
         {/* Mobile menu with slide-in animation */}
         {showMobileMenu && (
@@ -365,7 +381,7 @@ const NavBar = () => {
                     }`}
                     onClick={() => setShowMobileMenu(false)}
                   >
-                    {route.text}
+                    {t(route.key)}
                   </Link>
                 ))}
                 
@@ -382,7 +398,7 @@ const NavBar = () => {
                         }}
                         className="w-full mb-3 btn btn-primary hover-grow min-h-[44px]"
                       >
-                        Dashboard
+                        {t('dashboard')}
                       </button>
                       {isAdmin && (
                         <button
@@ -392,7 +408,7 @@ const NavBar = () => {
                           }}
                           className="w-full mb-3 btn btn-secondary hover-grow min-h-[44px]"
                         >
-                          Admin Panel
+                          {t('adminPanel')}
                         </button>
                       )}
                       <button
@@ -402,7 +418,7 @@ const NavBar = () => {
                         }}
                         className="w-full btn btn-danger-outline hover-grow min-h-[44px]"
                       >
-                        Logout
+                        {t('logout')}
                       </button>
                     </>
                   ) : (
@@ -414,7 +430,7 @@ const NavBar = () => {
                         }}
                         className="w-full mb-3 btn btn-primary hover-grow min-h-[44px]"
                       >
-                        Login
+                        {t('login')}
                       </button>
                       <button
                         onClick={() => {
@@ -423,7 +439,7 @@ const NavBar = () => {
                         }}
                         className="w-full btn btn-outline hover-grow min-h-[44px]"
                       >
-                        Sign Up
+                        {t('signup')}
                       </button>
                     </>
                   )}

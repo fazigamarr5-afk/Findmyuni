@@ -10,6 +10,12 @@ const translations = {
     dashboard: 'Dashboard',
     login: 'Login',
     signup: 'Sign Up',
+    logout: 'Logout',
+    blog: 'Blog',
+    about: 'About',
+    contact: 'Contact',
+    myProfile: 'My Profile',
+    adminPanel: 'Admin Panel',
     
     // Home
     heroTitle: 'Find Your Perfect University',
@@ -74,6 +80,12 @@ const translations = {
     dashboard: 'ڈیش بورڈ',
     login: 'لاگ ان',
     signup: 'سائن اپ',
+    logout: 'لاگ آؤٹ',
+    blog: 'بلاگ',
+    about: 'ہمارے بارے میں',
+    contact: 'رابطہ',
+    myProfile: 'میری پروفائل',
+    adminPanel: 'ایڈمن پینل',
     
     // Home
     heroTitle: 'اپنی مثالی یونیورسٹی تلاش کریں',
@@ -116,8 +128,8 @@ const translations = {
     upcomingDeadlines: 'آنے والی ڈیڈ لائنز',
     
     // Compare
-    compareTitle: 'یونیورسٹیاں کا موازنہ',
-    compareSubtitle: 'انORKI یونیورسٹیاں منتخب کریں',
+    compareTitle: 'یونیورسٹیوں کا موازنہ',
+    compareSubtitle: 'یونیورسٹیاں منتخب کریں',
     
     // Reviews
     writeReview: 'جائزہ لکھیں',

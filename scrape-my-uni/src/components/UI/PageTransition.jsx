@@ -18,49 +18,34 @@ const PageTransition = ({ children }) => {
     }
   }, [location, displayLocation]);
 
-  // Ensure we scroll to top when location changes or transition completes
+  // Scroll to top on navigation and drive the transition with a timer.
+  // Timer-based (not animationend) so the stage can never get stuck - and
+  // never lock body scroll: a stuck lock would trap the page on mobile.
   useEffect(() => {
-    // Scroll to top immediately when component mounts or location changes
     window.scrollTo({
       top: 0,
       left: 0,
       behavior: 'auto' // 'auto' is faster than 'smooth' and more reliable across browsers
     });
-    
-    // Also prevent scrolling during transition
-    if (transitionStage === "fadeOut") {
-      // Add a class to body to prevent scrolling during transition
-      document.body.style.overflow = "hidden";
-    } else {
-      // Re-enable scrolling after transition completes
-      document.body.style.overflow = "";
-    }
-    
-    // Cleanup function
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [location.pathname, transitionStage]);
 
-  const handleAnimationEnd = () => {
     if (transitionStage === "fadeOut") {
-      // When fadeOut animation ends, update the displayed location and start fadeIn
-      setTransitionStage("fadeIn");
-      setDisplayLocation(location);
-      
-      // Ensure we're at the top after the transition
-      window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: 'auto'
-      });
+      const timer = setTimeout(() => {
+        setTransitionStage("fadeIn");
+        setDisplayLocation(location);
+        window.scrollTo({
+          top: 0,
+          left: 0,
+          behavior: 'auto'
+        });
+      }, 320); // matches the fadeOutPage animation duration (0.3s)
+
+      return () => clearTimeout(timer);
     }
-  };
+  }, [location.pathname, transitionStage]);
 
   return (
     <div
       className={`page-transition ${transitionStage}`}
-      onAnimationEnd={handleAnimationEnd}
     >
       {children}
     </div>

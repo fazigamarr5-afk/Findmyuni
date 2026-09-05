@@ -253,22 +253,6 @@ const UniversityList = () => {
 
   // Helper function to filter universities locally
   const filterUniversitiesLocally = (data, query, activeFilters) => {
-    // Print raw filter values
-      sector: activeFilters.sector,
-      location: activeFilters.location,
-      province: activeFilters.province,
-      programType: activeFilters.programType
-    });
-
-    // Examine sample university data to understand structure
-    if (data.length > 0) {
-      const sampleUni = data[0];
-        name: sampleUni.name,
-        location: sampleUni.basic_info?.Location,
-        sector: sampleUni.basic_info?.Sector,
-        programs: sampleUni.programs ? Object.keys(sampleUni.programs) : []
-      });
-    }
 
     // Start with all data
     let results = [...data];

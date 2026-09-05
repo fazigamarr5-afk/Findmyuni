@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import { Box, Typography, Rating, TextField, Button, Card, CardContent, Avatar, Dialog, DialogTitle, DialogContent, DialogActions, Chip, Divider, IconButton } from '@mui/material';
 import { Star as StarIcon, ThumbUp as ThumbUpIcon, ThumbDown as ThumbDownIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { supabase } from '../supabase';
@@ -6,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 
 const UniversityReviews = ({ universityId }) => {
   const { currentUser } = useAuth();
+  const { t } = useLanguage();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
@@ -52,7 +54,7 @@ const UniversityReviews = ({ universityId }) => {
 
   return (
     <Box>
-      <Typography variant="h6" fontWeight="bold" mb={2}>Student Reviews</Typography>
+      <Typography variant="h6" fontWeight="bold" mb={2}>{t('reviews')}</Typography>
       
       {/* Rating Summary */}
       <Card sx={{ mb: 3, p: 2 }}>
@@ -80,7 +82,7 @@ const UniversityReviews = ({ universityId }) => {
       {/* Write Review Button */}
       {currentUser && (
         <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setOpenDialog(true)} sx={{ mb: 3 }}>
-          {myReview ? 'Edit Your Review' : 'Write a Review'}
+          {myReview ? t('editReview') : t('writeReview')}
         </Button>
       )}
       {!currentUser && (
@@ -104,7 +106,7 @@ const UniversityReviews = ({ universityId }) => {
                 </Box>
               </Box>
               {currentUser && review.user_id === currentUser.id && (
-                <IconButton size="small" color="error" onClick={() => handleDelete(review.id)}>
+                <IconButton size="small" color="error" sx={{ minWidth: '44px', minHeight: '44px' }} onClick={() => handleDelete(review.id)}>
                   <DeleteIcon fontSize="small" />
                 </IconButton>
               )}

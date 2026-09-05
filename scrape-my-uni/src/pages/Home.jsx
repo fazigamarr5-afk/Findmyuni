@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { universityService } from '../services/api.service';
 import SearchBar from '../components/SearchBar';
+import { useLanguage } from '../context/LanguageContext';
 import UniversityCard from '../components/UniversityCard';
 import OpenAdmissions from '../components/OpenAdmissions';
 import VideoBackground from '../components/UI/VideoBackground';
@@ -233,6 +234,7 @@ const ImportantAdmissionsCard = ({ university, onClick }) => {
 
 const Home = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [categories, setCategories] = useState([]);
   const [provinces, setProvinces] = useState([]);
   const [types, setTypes] = useState([]);
@@ -365,7 +367,7 @@ const Home = () => {
                 gutterBottom
                 sx={{ fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' } }}
               >
-                Find Your Perfect University
+                {t('heroTitle')}
               </Typography>
             </MotionBox>
             <MotionBox
@@ -378,7 +380,7 @@ const Home = () => {
                 gutterBottom
                 sx={{ mb: 4, fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' } }}
               >
-                Explore admissions, compare programs, and discover your path to higher education
+                {t('heroSubtitle')}
               </Typography>
             </MotionBox>
             <MotionBox
@@ -422,14 +424,14 @@ const Home = () => {
                 }
               }}
             >
-              Open Admissions
+              {t('openAdmissions')}
             </Typography>
             <Button 
               variant="outlined" 
               endIcon={<ChevronRight />}
               onClick={() => navigate('/universities')}
             >
-              View All
+              {t('viewAll')}
             </Button>
           </Box>
 
@@ -689,7 +691,7 @@ const Home = () => {
               }
             }}
           >
-            Browse All Universities
+            {t('browseAll')}
           </Button>
         </Box>
       </Container>

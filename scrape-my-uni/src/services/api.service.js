@@ -195,7 +195,13 @@ class UniversityApiService {
   async getUniversity(id) {
     try {
       const response = await api.get(`/universities/${id}`);
-      return response.data;
+      const data = response.data;
+      // The API may return docs in an unexpected shape (e.g. missing name) -
+      // don't trust it, fall back to Supabase instead of rendering a broken page.
+      if (data && typeof data === 'object' && typeof data.name === 'string' && data.name) {
+        return data;
+      }
+      throw new Error('Invalid university data from API');
     } catch (error) {
       const { data, error: dbError } = await supabase
         .from('universities')

@@ -61,12 +61,22 @@ const Login = () => {
   };
 
   const handleGoogleLogin = async () => {
+    const startUrl = window.location.href;
     try {
       setError('');
       setLoading(true);
       await loginWithGoogle();
-      // No need to show toast or navigate here as the redirect will happen
-      // and the redirect result will be handled in AuthContext
+      // The OAuth flow redirects the whole page to Google's consent screen.
+      // Some embedded/security-hardened browsers (e.g. preview panes) block
+      // that navigation silently, so detect it and tell the user what to do
+      // instead of leaving them with a dead button.
+      setTimeout(() => {
+        if (window.location.href === startUrl) {
+          setLoading(false);
+          setError('Google sign-in needs a full browser tab - the redirect to Google was blocked in this window. Use email sign-in below, or open the site in a regular browser.');
+          showToast('Google sign-in was blocked here - use email sign-in instead', 'error');
+        }
+      }, 1500);
     } catch (err) {
       console.error('Google login error:', err);
       setError('Failed to login with Google');
