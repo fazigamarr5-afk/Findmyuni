@@ -105,7 +105,8 @@ const BlogPost = () => {
     const headings = [];
     const regex = /#{2,3}\s+(.+)/g;
     let match;
-    while ((match = regex.exec(post.content)) !== null) {
+    const contentNoFaq = stripFaqSection(post.content);
+    while ((match = regex.exec(contentNoFaq)) !== null) {
       headings.push(match[1].replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/[*_`]/g, ''));
     }
     if (headings.length < 2) return null;
@@ -283,7 +284,7 @@ const BlogPost = () => {
 
             {/* Article Content */}
             <ArticleContent>
-              <div dangerouslySetInnerHTML={{ __html: formatContent(post.content) }} />
+              <div dangerouslySetInnerHTML={{ __html: formatContent(stripFaqSection(post.content)) }} />
             </ArticleContent>
 
             {/* FAQ Section */}
@@ -435,6 +436,15 @@ function formatContent(text) {
   html = html.replace(/<\/ul>\s*<ul>/g, '');
   
   return `<p>${html}</p>`;
+}
+
+/** Remove the "## Frequently Asked Questions" section (and everything after it) from article body */
+function stripFaqSection(content) {
+  if (!content) return '';
+  const lines = content.split('\n');
+  const idx = lines.findIndex(line => /^##\s+/i.test(line) && /frequently asked/i.test(line));
+  if (idx === -1) return content;
+  return lines.slice(0, idx).join('\n');
 }
 
 /** Extract Q&A pairs from the "## Frequently Asked Questions" section of a post */
