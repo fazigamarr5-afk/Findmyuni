@@ -118,11 +118,12 @@ curl -X 'POST' \
 
 ### Creating/Updating a University (requires admin authentication)
 
+Send your admin Firebase ID token via the `Authorization` header (e.g. `Authorization: Bearer <your-token>`):
+
 ```bash
 curl -X 'POST' \
   'http://localhost:8000/universities' \
   -H 'accept: application/json' \
-  -H 'Authorization: Bearer YOUR_FIREBASE_ID_TOKEN' \
   -H 'Content-Type: application/json' \
   -d '{
   "name": "Example University",
@@ -145,8 +146,7 @@ curl -X 'POST' \
 ```bash
 curl -X 'POST' \
   'http://localhost:8000/scrape' \
-  -H 'accept: application/json' \
-  -H 'Authorization: Bearer YOUR_FIREBASE_ID_TOKEN'
+  -H 'accept: application/json'
 ```
 
 ## Development
