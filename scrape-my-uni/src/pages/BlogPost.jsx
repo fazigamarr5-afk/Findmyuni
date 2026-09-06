@@ -106,7 +106,7 @@ const BlogPost = () => {
     const regex = /#{2,3}\s+(.+)/g;
     let match;
     while ((match = regex.exec(post.content)) !== null) {
-      headings.push(match[1].replace(/[*_`]/g, ''));
+      headings.push(match[1].replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/[*_`]/g, ''));
     }
     if (headings.length < 2) return null;
 
@@ -161,8 +161,10 @@ const BlogPost = () => {
   }
 
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const canonicalUrl = `https://www.findmyuni.site/blog/${post.slug}`;
   const metaTitle = post.meta_title || `${post.title} | FindMyUni Blog`;
   const metaDesc = post.meta_description || post.excerpt || '';
+  const faq = extractFaq(post.content);
 
   return (
     <>
@@ -178,20 +180,34 @@ const BlogPost = () => {
         <meta name="twitter:title" content={metaTitle} />
         <meta name="twitter:description" content={metaDesc} />
         {post.cover_image && <meta name="twitter:image" content={post.cover_image} />}
-        <link rel="canonical" href={`https://findmyuni.site/blog/${post.slug}`} />
+        <link rel="canonical" href={canonicalUrl} />
         <script type="application/ld+json">
           {JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'Article',
             headline: post.title,
             description: metaDesc,
-            author: { '@type': 'Person', name: post.author_name || 'FindMyUni Team' },
+            author: { '@type': 'Person', name: post.author_name || 'FindMyUni Team', url: 'https://www.findmyuni.site/about' },
             datePublished: post.created_at,
-            dateModified: post.updated_at,
+            dateModified: post.updated_at || post.created_at,
             image: post.cover_image,
-            publisher: { '@type': 'Organization', name: 'FindMyUni' },
+            mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalUrl },
+            publisher: { '@type': 'Organization', name: 'FindMyUni', url: 'https://www.findmyuni.site' },
           })}
         </script>
+        {faq.length > 0 && (
+          <script type="application/ld+json">
+            {JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: faq.map(f => ({
+                '@type': 'Question',
+                name: f.question,
+                acceptedAnswer: { '@type': 'Answer', text: f.answer },
+              })),
+            })}
+          </script>
+        )}
       </Helmet>
 
       <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -269,6 +285,27 @@ const BlogPost = () => {
             <ArticleContent>
               <div dangerouslySetInnerHTML={{ __html: formatContent(post.content) }} />
             </ArticleContent>
+
+            {/* FAQ Section */}
+            {faq.length > 0 && (
+              <Box mt={4}>
+                <Typography variant="h4" fontWeight="bold" gutterBottom>
+                  Frequently Asked Questions
+                </Typography>
+                {faq.map((item, i) => (
+                  <Card key={i} sx={{ mb: 2, borderRadius: 2 }}>
+                    <CardContent>
+                      <Typography variant="h6" fontWeight="bold" gutterBottom>
+                        {item.question}
+                      </Typography>
+                      <Typography variant="body1" color="text.secondary">
+                        {item.answer}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                ))}
+              </Box>
+            )}
 
             {/* Share Buttons */}
             <Box mt={4} p={3} sx={{ backgroundColor: 'action.hover', borderRadius: 3 }}>
@@ -376,6 +413,12 @@ function formatContent(text) {
     // Bold / italic
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    // Links
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, text, url) => {
+      const isInternal = url.startsWith('/');
+      const attrs = isInternal ? '' : ' target="_blank" rel="noopener"';
+      return `<a href="${url}"${attrs}>${text}</a>`;
+    })
     // Lists
     .replace(/^- (.+)$/gm, '<li>$1</li>')
     .replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>')
@@ -392,6 +435,31 @@ function formatContent(text) {
   html = html.replace(/<\/ul>\s*<ul>/g, '');
   
   return `<p>${html}</p>`;
+}
+
+/** Extract Q&A pairs from the "## Frequently Asked Questions" section of a post */
+function extractFaq(content) {
+  if (!content) return [];
+  const lines = content.split('\n');
+  const faq = [];
+  let inFaq = false;
+  let current = null;
+  for (const line of lines) {
+    if (!inFaq) {
+      if (/^##\s+/i.test(line) && /frequently asked/i.test(line)) inFaq = true;
+      continue;
+    }
+    if (/^##\s+/i.test(line)) break;
+    const qMatch = line.match(/^###\s+(.+)$/);
+    if (qMatch) {
+      if (current) faq.push(current);
+      current = { question: qMatch[1].replace(/[*_`]/g, '').trim(), answer: '' };
+    } else if (current && line.trim() && !/^[-*]\s/.test(line)) {
+      current.answer += (current.answer ? ' ' : '') + line.trim().replace(/\[([^\]]*)\]\([^)]*\)/g, '$1');
+    }
+  }
+  if (current) faq.push(current);
+  return faq;
 }
 
 export default BlogPost;

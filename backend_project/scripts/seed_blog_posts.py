@@ -44,7 +44,7 @@ We looked at QS World Rankings, HEC categories, research output, and where gradu
 
 **Location:** Islamabad | **Sector:** Public | **QS World Rank:** #383
 
-NUST has held the top spot for years now. The engineering and CS programs are genuinely strong — not just on paper, but in terms of where graduates land jobs. The NET entrance test is competitive, so start preparing early.
+[NUST](/universities/national-university-of-sciences-technology-nust) has held the top spot for years now. The engineering and CS programs are genuinely strong — not just on paper, but in terms of where graduates land jobs. The NET entrance test is competitive, so start preparing early.
 
 - **Top Programs:** CS, Electrical Engineering, Mechanical Engineering
 - **Admission:** NET (NUST Entrance Test) required
@@ -54,7 +54,7 @@ NUST has held the top spot for years now. The engineering and CS programs are ge
 
 **Location:** Lahore | **Sector:** Private | **QS World Rank:** #541
 
-LUMS is expensive, but the network you build there is real. Business and economics grads from LUMS walk into jobs at firms that recruit nowhere else in Pakistan. If you can afford it (or get NOP), it's worth it.
+[LUMS](/universities/lahore-university-of-management-sciences-lums) is expensive, but the network you build there is real. Business and economics grads from LUMS walk into jobs at firms that recruit nowhere else in Pakistan. If you can afford it (or get NOP), it's worth it.
 
 - **Top Programs:** Business Administration, Economics, CS, Social Sciences
 - **Admission:** LUMS Admission Test
@@ -64,7 +64,7 @@ LUMS is expensive, but the network you build there is real. Business and economi
 
 **Location:** Islamabad (+ multiple campuses) | **Sector:** Public | **QS World Rank:** #611
 
-Seven campuses across Pakistan. That's not just expansion — it means COMSATS actually has reach. The CS and pharmacy programs have quietly become some of the best in the country.
+Seven campuses across Pakistan. That's not just expansion — it means [COMSATS](/universities/comsats-university-islamabad) actually has reach. The CS and pharmacy programs have quietly become some of the best in the country.
 
 - **Top Programs:** CS, Software Engineering, Pharmacy, Business
 - **Admission:** ECAT or university-specific test
@@ -74,7 +74,7 @@ Seven campuses across Pakistan. That's not just expansion — it means COMSATS a
 
 **Location:** Multiple cities | **Sector:** Private
 
-If you want to work in tech in Pakistan, FAST is the name hiring managers know. The alumni network in Karachi and Lahore tech scenes is unbeatable. The entrance test is hard — that's the point.
+If you want to work in tech in Pakistan, [FAST](/universities/fast-national-university-of-computer-emerging-sciences) is the name hiring managers know. The alumni network in Karachi and Lahore tech scenes is unbeatable. The entrance test is hard — that's the point.
 
 - **Top Programs:** CS, Data Science, AI, Cybersecurity
 - **Admission:** FAST Entrance Test
@@ -149,7 +149,21 @@ Rankings are a starting point, not the answer. Think about:
 3. **Money** — Public universities cost a fraction of private ones. Factor in scholarships too.
 4. **Career outcomes** — Where do graduates from this specific program end up?
 
-We track all 336 Pakistani universities with real data. Compare them side by side at [FindMyUni](https://findmyuni.com)."""
+We track all 336 Pakistani universities with real data. Compare them side by side on [FindMyUni](/universities).
+
+## Frequently Asked Questions
+
+### Which university is number 1 in Pakistan in 2026?
+NUST currently holds the top spot, followed closely by LUMS, COMSATS and FAST. The order shifts a little every year depending on QS and HEC rankings, so check the [university rankings](/universities) before you decide.
+
+### How many universities are there in Pakistan?
+More than 336 universities are recognized by the HEC across public and private sectors. You can [browse the full list](/universities) on FindMyUni.
+
+### When do university admissions for 2026 open in Pakistan?
+Most universities open fall 2026 admissions between June and September, though private universities like LUMS and FAST start earlier. Deadlines vary by university and program, so keep an eye on each [university's page](/universities) for exact dates.
+
+### Which is better — FAST or NUST?
+For computer science and software engineering, FAST has the stronger industry reputation, while NUST wins on overall rankings and campus life. It really depends on your program and career goals — [compare them side by side](/compare)."""
     },
     {
         "title": "NUST Admission 2026: Complete Guide to NET Test, Deadlines & Programs",
@@ -245,7 +259,24 @@ That's cheap for a top university. Most private alternatives cost 3-4x more.
 
 Apply for all three series. Each one is a separate shot at getting in.
 
-Check [FindMyUni](https://findmyuni.com/universities) for the latest deadlines and university details."""
+Check [NUST's profile on FindMyUni](/universities/national-university-of-sciences-technology-nust) for the latest deadlines and program details.
+
+## Frequently Asked Questions
+
+### When is the NUST NET test in 2026?
+NUST runs three NET series every year: Series I in March, Series II in June, and Series III in September. Each series is a separate shot at admission, so apply for all three if you can.
+
+### How much does the NUST NET cost?
+The NET fee is around PKR 5,000 per attempt. Registration happens online at nust.edu.pk.
+
+### How much does a 4-year degree at NUST cost?
+Expect roughly PKR 5-7 lakhs in total — tuition plus hostel. That's a fraction of what comparable private universities charge.
+
+### What is NUST's QS World Ranking?
+NUST is ranked around #383 globally in the QS World University Rankings, making it the highest-ranked public university in Pakistan for engineering and technology.
+
+### Is NUST good for computer science?
+Yes — the SEECS campus runs one of the strongest CS programs in the country, with strong research output and solid placement in the Islamabad tech scene."""
     },
     {
         "title": "Best CS Universities in Pakistan 2026: Where to Study Computer Science",
@@ -266,7 +297,7 @@ The IT industry in Pakistan is growing at 20%+ annually. That means more jobs, b
 
 #### 1. FAST-NUCES — The CS King
 
-Ask any tech recruiter in Pakistan and they'll say FAST. The hackathon culture, the industry connections, the alumni network — it all adds up.
+Ask any tech recruiter in Pakistan and they'll say [FAST](/universities/fast-national-university-of-computer-emerging-sciences). The hackathon culture, the industry connections, the alumni network — it all adds up.
 
 - **Average Graduate Salary:** PKR 80,000 - 150,000/month
 - **Campuses:** Islamabad, Lahore, Karachi, Peshawar, Faisalabad
@@ -274,7 +305,7 @@ Ask any tech recruiter in Pakistan and they'll say FAST. The hackathon culture, 
 
 #### 2. NUST (SEECS) — Top Overall University
 
-NUST's CS school is world-class. Research opportunities, international collaborations, and a campus that actually feels like a university.
+[NUST](/universities/national-university-of-sciences-technology-nust)'s CS school is world-class. Research opportunities, international collaborations, and a campus that actually feels like a university.
 
 - **QS World Rank:** #383
 - **Average Salary:** PKR 70,000 - 120,000/month
@@ -283,7 +314,7 @@ NUST's CS school is world-class. Research opportunities, international collabora
 
 #### 3. COMSATS — Best Bang for Your Buck
 
-Seven campuses. Lower fees. Solid CS education. COMSATS won't make headlines, but its graduates do fine.
+Seven campuses. Lower fees. Solid CS education. [COMSATS](/universities/comsats-university-islamabad) won't make headlines, but its graduates do fine.
 
 - **QS Rank:** #611
 - **Average Salary:** PKR 50,000 - 90,000/month
@@ -292,7 +323,7 @@ Seven campuses. Lower fees. Solid CS education. COMSATS won't make headlines, bu
 
 #### 4. LUMS — The Research Play
 
-LUMS CS is small and expensive, but the research output and startup ecosystem are real. If you want to build something (or get a PhD), this is the place.
+[LUMS](/universities/lahore-university-of-management-sciences-lums) CS is small and expensive, but the research output and startup ecosystem are real. If you want to build something (or get a PhD), this is the place.
 
 - **QS Rank:** #541
 - **Average Salary:** PKR 80,000 - 140,000/month
@@ -301,7 +332,7 @@ LUMS CS is small and expensive, but the research output and startup ecosystem ar
 
 #### 5. Air University — The Sleeper Pick
 
-Air University's CS program has gotten genuinely good in the last few years. Modern labs, growing faculty, and fees that won't break the bank.
+[Air University](/universities/air-university)'s CS program has gotten genuinely good in the last few years. Modern labs, growing faculty, and fees that won't break the bank.
 
 - **Average Salary:** PKR 50,000 - 80,000/month
 - **Campuses:** Islamabad, Multan
@@ -333,7 +364,21 @@ These numbers skew higher for grads from FAST and NUST who land at top firms.
 2. **Location** — Islamabad, Lahore, and Karachi have the tech jobs and internships
 3. **Alumni** — FAST and NUST alumni networks open doors in ways that matter
 
-Compare all CS programs at [FindMyUni](https://findmyuni.com)."""
+Compare all CS programs at [FindMyUni](/universities) — or put FAST and NUST head-to-head in the [university comparison tool](/compare).
+
+## Frequently Asked Questions
+
+### Which university is best for computer science in Pakistan?
+FAST-NUCES has the strongest industry reputation — most tech recruiters name it first. NUST (SEECS) is the best overall package for rankings and research, while COMSATS offers the best value for money. Pick based on your budget and career goals.
+
+### How much does a CS graduate earn in Pakistan?
+Fresh CS graduates earn between PKR 40,000 and 80,000 per month. After 3-5 years, that jumps to PKR 150,000-300,000, with FAST and NUST graduates typically at the top of the range.
+
+### How much is CS tuition at FAST, NUST, and COMSATS?
+FAST charges around PKR 180,000 per semester, NUST around PKR 120,000, and COMSATS around PKR 80,000. Over four years, FAST is the most expensive of the three.
+
+### Is a CS degree from Pakistan recognized abroad?
+Yes — CS degrees from HEC Category W universities like NUST, FAST, and LUMS are recognized internationally, especially for MS/PhD admissions. You can [check any university's HEC category](/universities) on FindMyUni."""
     },
     {
         "title": "University Scholarships in Pakistan 2026: Complete Guide to Financial Aid",
@@ -410,7 +455,21 @@ The Higher Education Commission runs several programs:
 3. **Get references from people who know you** — A teacher who can speak to your work beats a principal who can't
 4. **Apply early** — Last-day submissions feel rushed
 
-Find universities with the best scholarships at [FindMyUni](https://findmyuni.com)."""
+Find universities with the best scholarships at [FindMyUni](/universities).
+
+## Frequently Asked Questions
+
+### How can I get a full scholarship in Pakistan?
+The main routes are HEC scholarships (indigenous and overseas), NUST merit scholarships (up to 100% tuition for top NET scorers), LUMS NOP for talented students who can't afford fees, and PEEF for Punjab's top position holders. Strong academics are the common requirement — start your applications early.
+
+### How much does the Ehsaas undergraduate scholarship pay?
+The Ehsaas Undergraduate Scholarship covers PKR 40,000-80,000 per year depending on need, and it's renewable if you maintain your grades.
+
+### When should I apply for scholarships in Pakistan?
+Most major scholarships open between October and January for the next academic year. Need-based programs like NUST's and LUMS's are tied to admission timelines, so apply for admission and financial aid at the same time.
+
+### Which private companies offer scholarships in Pakistan?
+Engro (engineering), Nestlé (business and engineering), Unilever (business administration), and Zong (IT and telecom) all run scholarship programs. These are competitive — treat the application like a job interview."""
     },
     {
         "title": "Public vs Private Universities in Pakistan: Which Should You Choose?",
@@ -496,7 +555,21 @@ If you can get into FAST or LUMS and afford it, go for it. The network and caree
 
 Otherwise? Public universities like NUST, COMSATS, and Punjab University deliver excellent education at a fraction of the cost. Don't let the "private = better" myth drain your family's savings.
 
-Compare fees and quality at [FindMyUni](https://findmyuni.com)."""
+Compare fees and quality across universities at [FindMyUni](/compare).
+
+## Frequently Asked Questions
+
+### Are private universities better than public universities in Pakistan?
+Not automatically. FAST and LUMS justify their fees with strong industry networks, but public universities like NUST, COMSATS, and Punjab University deliver excellent education at a fraction of the cost. It depends on your program, budget, and career goals.
+
+### How much does a private university cost in Pakistan?
+Private universities charge roughly PKR 150,000-400,000 per year, which works out to PKR 6-16 lakhs for a 4-year degree. Public universities cost PKR 20,000-100,000 per year — up to 10x less.
+
+### Which Pakistani universities give the best value for money?
+Punjab University and BZU are the cheapest strong options, COMSATS offers a great quality-to-price ratio, and NUST is worth its mid-range fees for engineering and CS. Among private ones, FAST delivers the best return on investment for tech careers.
+
+### Do employers care whether you studied at a public or private university?
+Mostly no — they care about the university's reputation and your skills. FAST, LUMS, and NUST grads dominate top tech companies regardless of sector, while public university grads do well in government jobs and CSS."""
     },
     {
         "title": "How to Write a Perfect University Application Personal Statement",
@@ -589,7 +662,18 @@ Notice how specific it is. No vague claims. Real details. That's what works.
 3. **Read it out loud** — if you stumble, rewrite that sentence
 4. **This is YOUR story** — not what you think they want to hear
 
-Need help choosing the right university? Use [FindMyUni](https://findmyuni.com) to compare programs and deadlines."""
+Need help choosing the right university? Use [FindMyUni](/universities) to compare programs and deadlines.
+
+## Frequently Asked Questions
+
+### How long should a personal statement be?
+Most Pakistani and international universities ask for 500-1000 words. LUMS, IBA, and foreign universities specify exact limits — check each application page and stay within the word count.
+
+### Do Pakistani universities require a personal statement?
+Yes, for many programs — especially private universities like LUMS, IBA, and FAST, plus most study-abroad applications. Public universities rely more on merit and entry tests, but some departments ask for one too.
+
+### What should you avoid in a personal statement?
+Generic openers like "I love computers", copied paragraphs from the internet, listing achievements (that's what the resume is for), and trashing other schools. Admissions officers read hundreds of these — specifics and honesty win."""
     },
     {
         "title": "HEC University Categories Explained: W, X, Y, Z — What They Mean for You",
@@ -682,9 +766,23 @@ The Higher Education Commission rates every Pakistani university on teaching qua
 
 ### Check Any University's Category
 
-We track all 336 Pakistani universities with their HEC category, rankings, and program details. Search any university at [FindMyUni](https://findmyuni.com).
+We track all 336 Pakistani universities with their HEC category, rankings, and program details. Search any university at [FindMyUni](/universities).
 
-One thing to remember: your category matters, but your effort matters more. Students from every tier succeed — the ones who put in the work."""
+One thing to remember: your category matters, but your effort matters more. Students from every tier succeed — the ones who put in the work.
+
+## Frequently Asked Questions
+
+### What is the HEC W category?
+W is the HEC's top tier — universities with 80%+ PhD faculty, strong research output, and international recognition. NUST, LUMS, FAST, Aga Khan University, COMSATS, and QAU fall in this category.
+
+### Is a W category degree better than an X category degree?
+For international recognition, scholarships, and multinational employers, yes. X category degrees are still solid for careers inside Pakistan — universities like Punjab University and UET Lahore fall here.
+
+### How do I check my university's HEC category?
+Search any university on [FindMyUni](/universities) — we list the HEC category alongside rankings, programs, and admission details.
+
+### What happens if my university is Z category?
+A Z category degree is recognized but carries serious reservations. Some employers may not accept it, and scholarship options are limited. If you can, aim for W or X — or transfer if you're already enrolled."""
     },
     {
         "title": "Engineering Admissions in Pakistan 2026: ECAT, Entry Tests, and Deadlines",
@@ -741,11 +839,11 @@ If you're applying to Punjab engineering universities, ECAT is your gate. Here's
 
 ### Top Engineering Universities
 
-**Punjab:** UET Lahore (#1), UET Taxila, GIU JIT
+**Punjab:** [UET Lahore](/universities/university-of-engineering-technology-uet-lahore) (#1), UET Taxila, GIU JIT
 
-**Sindh:** NED University (Karachi), Mehran University (Civil & Mechanical)
+**Sindh:** [NED University](/universities/ned-university-of-engineering-technology) (Karachi), [Mehran University](/universities/mehran-university-of-engineering-technology) (Civil & Mechanical)
 
-**KPK:** UET Peshawar, GIKI (private, premium)
+**KPK:** UET Peshawar, [GIKI](/universities/giki-ghulam-ishaq-khan-institute) (private, premium)
 
 **Balochistan:** NUST Balochistan Campus (new but quality programs)
 
@@ -776,7 +874,21 @@ If you're applying to Punjab engineering universities, ECAT is your gate. Here's
 4. **Apply broadly** — Don't bet everything on one university
 5. **Have your documents ready** — Domicile, CNIC, transcripts. These take time.
 
-Find all engineering programs and deadlines at [FindMyUni](https://findmyuni.com)."""
+Find all engineering programs and deadlines at [FindMyUni](/universities).
+
+## Frequently Asked Questions
+
+### When is ECAT 2026 in Pakistan?
+ECAT registration usually runs from March to April, with the test in May. UET admission applications follow in June-July and merit lists come out in August, ahead of classes in September-October.
+
+### Is ECAT mandatory for every engineering university?
+Not all. ECAT applies to Punjab universities like UET Lahore, BZU, and GCUF. NUST uses its own NET, FAST and GIKI run their own tests, and COMSATS has its own entry exam. Check the entry test each university accepts before applying.
+
+### What is the passing score for ECAT?
+There's no fixed pass mark — ECAT is merit-based. Your combined score (Matric + FSc + ECAT) competes against other applicants, so aim as high as you can. A 50%+ ECAT score keeps you competitive at most Punjab universities.
+
+### Which is the best engineering university in Pakistan?
+UET Lahore leads Punjab for traditional engineering, NUST is the top overall for engineering and CS, NED dominates in Karachi, and GIKI is the premium private option with heavy workloads but strong graduate outcomes."""
     },
     {
         "title": "Life After University: Career Options for Pakistani Graduates in 2026",
@@ -880,7 +992,18 @@ Pakistani graduates are in demand globally:
 5. **Get certifications** — AWS, Google, Microsoft. They signal competence.
 6. **Practice interviews** — Daily. It's a skill like any other.
 
-Explore university programs that match your career goals at [FindMyUni](https://findmyuni.com)."""
+Explore university programs that match your career goals at [FindMyUni](/universities).
+
+## Frequently Asked Questions
+
+### Which degree has the best job prospects in Pakistan?
+Computer science and IT lead the pack — the sector is growing 20%+ a year with $2.5B+ in exports. Software engineering, AI/ML, and cybersecurity roles pay the most, followed by engineering (especially electrical) and business analytics.
+
+### How much do fresh graduates earn in Pakistan?
+It depends on the field: CS/IT grads start at PKR 40,000-80,000 per month, engineers at PKR 45,000-70,000, and business graduates around PKR 40,000-60,000. FAST and NUST grads typically land at the top of the range.
+
+### Can Pakistani graduates earn in dollars?
+Yes — Pakistan is the 4th largest freelancing country in the world. Developers, designers, and content writers earn $10-50/hour on Fiverr and Upwork, often more than a local 9-to-5 salary."""
     },
     {
         "title": "Pakistani Students Guide to Studying Abroad: Scholarships & Universities",
@@ -999,7 +1122,21 @@ HEC runs several programs for studying abroad:
 5. **Apply to 5-8 universities** — Mix of reach and safety schools
 6. **Have a financial backup plan** — Things don't always go as expected
 
-Start your study abroad journey at [FindMyUni](https://findmyuni.com)."""
+Start your study abroad journey at [FindMyUni](/universities).
+
+## Frequently Asked Questions
+
+### Which country is best for Pakistani students to study abroad?
+The UK offers the fastest route to a degree (1-year Master's) with a 2-year work visa. Germany is the cheapest — public universities are tuition-free. Canada has the easiest path to permanent residency, and Australia combines strong programs with work rights while studying.
+
+### How much does it cost to study in the UK from Pakistan?
+A Master's in the UK costs roughly PKR 40-80 lakhs all-in, including living costs. Germany comes in far cheaper at PKR 15-25 lakhs because public tuition is free.
+
+### Can I study in Germany for free as a Pakistani student?
+Yes — German public universities don't charge tuition. You'll need around EUR 11,208 in a blocked account for living costs, plus an APS certificate and proof of German or English language ability.
+
+### Which scholarships are fully funded for Pakistani students?
+Chevening (UK), the Commonwealth Scholarship, Australia Awards, and HEC's overseas programs cover tuition and living costs. They're competitive — apply 6-12 months before your program starts."""
     },
 ]
 

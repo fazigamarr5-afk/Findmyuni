@@ -294,7 +294,8 @@ const BlogList = () => {
         <meta property="og:title" content="Blog | FindMyUni" />
         <meta property="og:description" content="Expert guides on university admissions, scholarships, and education tips for Pakistani students." />
         <meta property="og:type" content="website" />
-        <link rel="canonical" href="https://findmyuni.site/blog" />
+        <meta property="og:url" content="https://www.findmyuni.site/blog" />
+        <link rel="canonical" href="https://www.findmyuni.site/blog" />
       </Helmet>
 
       {/* Hero Section */}
