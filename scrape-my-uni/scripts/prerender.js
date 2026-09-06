@@ -137,6 +137,26 @@ function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+// Seed visible text into the empty #root shell so crawlers see content in the
+// raw HTML. React replaces these children when it mounts, so users are unaffected.
+function injectBody(html, bodyHtml) {
+  return html.replace(/<div id="root"><\/div>/, `<div id="root">${bodyHtml}</div>`);
+}
+
+function stripMarkdown(text) {
+  return text
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/[#>*|`_]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function introParagraph(text, maxLen = 500) {
+  const clean = stripMarkdown(text);
+  return clean.length > maxLen ? clean.slice(0, maxLen).trimEnd() + '…' : clean;
+}
+
 function generateBlogPostHtml(template, post) {
   const title = escapeHtml(post.title);
   const description = escapeHtml(post.description);
@@ -226,6 +246,14 @@ function generateBlogPostHtml(template, post) {
     schemas.map(s => `    <script type="application/ld+json">${s}</script>`).join('\n') + '\n  </head>'
   );
   
+  // Seed visible body content for crawlers
+  const intro = introParagraph(post.content, 500);
+  const bodyHtml =
+    `<h1>${title}</h1>` +
+    `<p>${description}</p>` +
+    (intro ? `<p>${escapeHtml(intro)}</p>` : '');
+  html = injectBody(html, bodyHtml);
+  
   return html;
 }
 
@@ -285,6 +313,10 @@ function generateStaticPageHtml(template, page) {
   // Fix og:image and twitter:image to use www
   html = html.replace(/content="https:\/\/findmyuni\.site\//g, 'content="https://www.findmyuni.site/');
   
+  // Seed visible body content for crawlers
+  const bodyHtml = `<h1>${title}</h1><p>${description}</p>`;
+  html = injectBody(html, bodyHtml);
+  
   return html;
 }
 
@@ -332,6 +364,10 @@ function generateUniversityHtml(template, uni) {
     /<\/head>/,
     `    <script type="application/ld+json">${orgSchema}</script>\n  </head>`
   );
+  
+  // Seed visible body content for crawlers
+  const bodyHtml = `<h1>${title}</h1><p>${description}</p>`;
+  html = injectBody(html, bodyHtml);
   
   return html;
 }

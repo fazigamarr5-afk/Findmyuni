@@ -41,7 +41,7 @@ function makeSlug(name) {
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '')
-    .substring(0, 100);
+    .substring(0, 60); // keep full URL under 100 chars
 }
 
 async function fetchWithRetry(batchUrl, attempts = 3) {

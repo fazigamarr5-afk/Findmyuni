@@ -9,6 +9,9 @@
  * Without arguments, pings all key pages.
  */
 
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
+
 const SITE_URL = 'https://www.findmyuni.site';
 const INDEXNOW_ENDPOINT = 'https://api.indexnow.org/indexnow';
 
@@ -48,6 +51,7 @@ async function pingIndexNow(urls) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json; charset=utf-8' },
       body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(15000),
     });
 
     if (res.ok) {
@@ -60,8 +64,24 @@ async function pingIndexNow(urls) {
   }
 }
 
+// Include all prerendered university pages so every deploy notifies engines
+function buildAllPages() {
+  const slugsPath = join(import.meta.dirname, '..', 'public', 'university-slugs.json');
+  let unis = [];
+  if (existsSync(slugsPath)) {
+    try { unis = JSON.parse(readFileSync(slugsPath, 'utf-8')); } catch (e) { /* ignore corrupt cache */ }
+  }
+  return [
+    ...pages,
+    ...unis.map(u => `/universities/${u.slug}`),
+    '/comparisons/nust-vs-lums',
+    '/comparisons/fast-vs-nust-cs',
+    '/comparisons/best-university-search-tools-pakistan',
+  ];
+}
+
 // Get URLs from command line or use all pages
 const args = process.argv.slice(2);
-const urls = args.length > 0 ? args : pages;
+const urls = args.length > 0 ? args : buildAllPages();
 
 pingIndexNow(urls);
