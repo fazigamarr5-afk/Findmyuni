@@ -1,9 +1,12 @@
 """Generate sitemap.xml with all university URLs from Supabase."""
+import os
 import requests
 
-SUPABASE_URL = "https://luribqlhnmgslpoqlxmi.supabase.co"
-API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1cmlicWxobm1nc2xwb3FseG1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDQzNjcsImV4cCI6MjEwMzgyMDM2N30.IvnGUPVueylQjCkD5UPVtAosM3XKI3KNBkdCf2UbGus"
-BASE = "https://findmyuni.pk"
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+API_KEY = os.environ.get("SUPABASE_ANON_KEY") or os.environ.get("SUPABASE_SERVICE_KEY")
+if not SUPABASE_URL or not API_KEY:
+    raise SystemExit("Set SUPABASE_URL and SUPABASE_ANON_KEY (or SUPABASE_SERVICE_KEY) env vars — see backend_project/env.example")
+BASE = "https://findmyuni.site"
 
 xml = ['<?xml version="1.0" encoding="UTF-8"?>',
        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']

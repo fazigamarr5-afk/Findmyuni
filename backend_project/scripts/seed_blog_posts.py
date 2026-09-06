@@ -7,8 +7,10 @@ import os
 import re
 import requests
 
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://jtsbhimrzbvorzpkmine.supabase.co")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0c2JoaW1yemJ2b3J6cGttaW5lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzM2NjkzOSwiZXhwIjoyMDY4OTQyOTM5fQ.zsPvK677jtEKJMB-vPRC7kHCkLaMF9DPzKwDhieUj1E")
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get("SUPABASE_ANON_KEY") or os.environ.get("SUPABASE_KEY")
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise SystemExit("Set SUPABASE_URL and SUPABASE_SERVICE_KEY (or SUPABASE_ANON_KEY) env vars — see backend_project/env.example")
 
 HEADERS = {
     "apikey": SUPABASE_KEY,

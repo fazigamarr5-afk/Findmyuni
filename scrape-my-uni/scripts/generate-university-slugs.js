@@ -2,16 +2,37 @@
  * Generate University Slugs
  * Fetches all universities from Supabase and generates SEO-friendly slugs.
  * Saves to a JSON file for prerendering and sitemap generation.
- * 
+ *
+ * Build-safe: retries the Supabase fetch with backoff, and if the fetch
+ * still fails it falls back to the previously generated university-slugs.json
+ * so a transient network error never breaks the Vercel build.
+ *
  * Run: node scripts/generate-university-slugs.js
  */
 
-const url = 'https://luribqlhnmgslpoqlxmi.supabase.co';
-const key = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1cmlicWxobm1nc2xwb3FseG1pIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODI0NDM2NywiZXhwIjoyMTAzODIwMzY3fQ.85X7hlYzUbKZTbaTvgDaGONdm8xwxPf-gWvWVVv11lM';
+// Load .env so local builds work out of the box (VITE_* names come from
+// scrape-my-uni/.env). Vercel builds use SUPABASE_* dashboard env vars.
+import 'dotenv/config';
+
+const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const key =
+  process.env.SUPABASE_SERVICE_KEY ||
+  process.env.SUPABASE_ANON_KEY ||
+  process.env.SUPABASE_KEY ||
+  process.env.VITE_SUPABASE_ANON_KEY;
+
+if (!url || !key) {
+  console.error('ERROR: Set SUPABASE_URL and SUPABASE_SERVICE_KEY (or SUPABASE_ANON_KEY) env vars.');
+  console.error('In Vercel: Project Settings → Environment Variables. See scrape-my-uni/.env.example');
+  process.exit(1);
+}
+
 const SITE_URL = 'https://www.findmyuni.site';
 
-import { writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
+
+const CACHE_PATH = join(import.meta.dirname, '..', 'public', 'university-slugs.json');
 
 function makeSlug(name) {
   return name
@@ -23,37 +44,51 @@ function makeSlug(name) {
     .substring(0, 100);
 }
 
-async function generateSlugs() {
-  console.log('Fetching universities from Supabase...');
-  
+async function fetchWithRetry(batchUrl, attempts = 3) {
+  let lastError = null;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      const res = await fetch(batchUrl, {
+        headers: { apikey: key, Authorization: `Bearer ${key}` },
+        signal: AbortSignal.timeout(20000),
+      });
+      if (res.ok) return res;
+      lastError = new Error(`HTTP ${res.status}`);
+    } catch (e) {
+      lastError = e;
+    }
+    if (attempt < attempts) {
+      const waitMs = 1500 * attempt; // 1.5s, 3s backoff
+      console.log(`  Supabase fetch attempt ${attempt} failed (${lastError.message}), retrying in ${waitMs / 1000}s...`);
+      await new Promise(r => setTimeout(r, waitMs));
+    }
+  }
+  throw lastError;
+}
+
+async function fetchAllUniversities() {
   const allUnis = [];
   let offset = 0;
   const limit = 100;
-  
+
   while (true) {
-    const res = await fetch(
-      `${url}/rest/v1/universities?select=id,name&order=name&limit=${limit}&offset=${offset}`,
-      { headers: { apikey: key, Authorization: `Bearer ${key}` } }
+    const res = await fetchWithRetry(
+      `${url}/rest/v1/universities?select=id,name&order=name&limit=${limit}&offset=${offset}`
     );
-    
-    if (!res.ok) {
-      console.error('Fetch failed:', res.status);
-      break;
-    }
-    
     const batch = await res.json();
     if (batch.length === 0) break;
     allUnis.push(...batch);
     offset += limit;
   }
-  
-  console.log(`Fetched ${allUnis.length} universities`);
-  
-  // Generate slugs, handle duplicates
+
+  return allUnis;
+}
+
+function generateSlugs(unis) {
   const slugCounts = {};
-  const slugs = allUnis.map(uni => {
+  return unis.map(uni => {
     let slug = makeSlug(uni.name);
-    
+
     // Handle duplicates by appending number
     if (slugCounts[slug]) {
       slugCounts[slug]++;
@@ -61,7 +96,7 @@ async function generateSlugs() {
     } else {
       slugCounts[slug] = 1;
     }
-    
+
     return {
       id: uni.id,
       name: uni.name,
@@ -69,15 +104,52 @@ async function generateSlugs() {
       url: `${SITE_URL}/universities/${slug}`
     };
   });
-  
+}
+
+async function generateSlugsFromDb() {
+  console.log('Fetching universities from Supabase...');
+  const allUnis = await fetchAllUniversities();
+  console.log(`Fetched ${allUnis.length} universities`);
+  return generateSlugs(allUnis);
+}
+
+function loadCachedSlugs() {
+  if (!existsSync(CACHE_PATH)) return null;
+  try {
+    const cached = JSON.parse(readFileSync(CACHE_PATH, 'utf-8'));
+    if (Array.isArray(cached) && cached.length > 0) return cached;
+  } catch (e) {
+    console.log('  Cached slug file is corrupt, ignoring it');
+  }
+  return null;
+}
+
+async function main() {
+  let slugs;
+
+  try {
+    slugs = await generateSlugsFromDb();
+  } catch (e) {
+    // Network failure — fall back to the last good slug file so the build
+    // continues. Fail loudly only when there is no cache at all.
+    console.warn(`\n⚠️  Supabase fetch failed (${e.message})`);
+    const cached = loadCachedSlugs();
+    if (cached) {
+      console.log(`Using cached university-slugs.json (${cached.length} universities)`);
+      slugs = cached;
+    } else {
+      console.error('ERROR: No cached university-slugs.json available. The build cannot continue.');
+      process.exit(1);
+    }
+  }
+
   // Save to file
-  const outputPath = join(import.meta.dirname, '..', 'public', 'university-slugs.json');
-  writeFileSync(outputPath, JSON.stringify(slugs, null, 2));
+  writeFileSync(CACHE_PATH, JSON.stringify(slugs, null, 2));
   console.log(`Saved ${slugs.length} university slugs to public/university-slugs.json`);
-  
+
   // Show sample
   console.log('\nSample slugs:');
   slugs.slice(0, 10).forEach(u => console.log(`  ${u.name} → /universities/${u.slug}`));
 }
 
-generateSlugs();
+main();

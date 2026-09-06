@@ -1,16 +1,25 @@
 const { initializeApp } = require('firebase/app');
 const { getFirestore, collection, addDoc, doc, setDoc } = require('firebase/firestore');
+const dotenv = require('dotenv');
 
-// Firebase configuration
+// Load environment variables from .env (VITE_FIREBASE_* vars)
+dotenv.config();
+
+// Firebase configuration — read from environment, never hardcode keys in source
 const firebaseConfig = {
-  apiKey: "AIzaSyCwbiOiy_1JOmlUKllf1tx2c2pBHr7chUs",
-  authDomain: "scrapemyuni.firebaseapp.com",
-  projectId: "scrapemyuni",
-  storageBucket: "scrapemyuni.firebasestorage.app",
-  messagingSenderId: "1010320495217",
-  appId: "1:1010320495217:web:3bfdb1f74d48d922f8c1d0",
-  measurementId: "G-0EVVSYTW79"
+  apiKey: process.env.VITE_FIREBASE_API_KEY,
+  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.VITE_FIREBASE_APP_ID,
+  measurementId: process.env.VITE_FIREBASE_MEASUREMENT_ID
 };
+
+if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+  console.error('ERROR: Set VITE_FIREBASE_* env vars in scrape-my-uni/.env (see .env.example)');
+  process.exit(1);
+}
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);

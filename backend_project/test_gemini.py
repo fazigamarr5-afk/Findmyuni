@@ -12,8 +12,11 @@ load_dotenv()
 def test_gemini_api():
     """Test the Gemini API with a simple query"""
     try:
-        # Get API key from environment or use the provided one
-        api_key = os.getenv("GEMINI_API_KEY", "AIzaSyDXsVNoJTT6wOO1OZOpcbmbrjpseCj5GgA")
+        # Get API key from environment — never hardcode keys in source
+        api_key = os.getenv("GEMINI_API_KEY")
+        if not api_key:
+            print("Error: Set GEMINI_API_KEY env var (see backend_project/env.example)")
+            return False
         
         # Configure the Gemini API
         genai.configure(api_key=api_key)
