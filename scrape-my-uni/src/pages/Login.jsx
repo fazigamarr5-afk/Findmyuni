@@ -26,7 +26,7 @@ const Login = () => {
     const url = new URL(window.location.href);
     const err = url.searchParams.get('error_description') || url.searchParams.get('error');
     if (err) {
-      setError(decodeURIComponent(err).replace(/+/g, ' '));
+      setError(decodeURIComponent(err).replace(/\+/g, ' '));
       for (const k of ['error', 'error_description', 'error_code', 'state']) url.searchParams.delete(k);
       window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
     }
