@@ -3,9 +3,10 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useTheme } from '@mui/material/styles';
+import { supabase } from '../supabase';
 
 const Login = () => {
-  const { login, loginWithGoogle, isAuthenticated } = useAuth();
+  const { login, loginWithGoogle, loginWithGoogleNewTab, isAuthenticated } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -80,13 +81,50 @@ const Login = () => {
       await loginWithGoogle();
       // The OAuth flow redirects the whole page to Google's consent screen.
       // Some embedded/security-hardened browsers (e.g. preview panes) block
-      // that navigation silently, so detect it and tell the user what to do
-      // instead of leaving them with a dead button.
-      setTimeout(() => {
+      // that navigation silently — detect it and fall back to a new tab.
+      setTimeout(async () => {
         if (window.location.href === startUrl) {
-          setLoading(false);
-          setError('Google sign-in needs a full browser tab - the redirect to Google was blocked in this window. Use email sign-in below, or open the site in a regular browser.');
-          showToast('Google sign-in was blocked here - use email sign-in instead', 'error');
+          // Redirect was blocked — try opening Google in a new tab instead.
+          try {
+            await loginWithGoogleNewTab();
+            setError('');
+            showToast(
+              'Google sign-in opened in a new tab — complete sign-in there and switch back.',
+              'info'
+            );
+            // Listen for session to appear in this tab (via IndexedDB cross-tab sync)
+            // and redirect the user automatically.
+            const checkSession = setInterval(async () => {
+              const { data } = await supabase.auth.getSession();
+              if (data.session) {
+                clearInterval(checkSession);
+                navigate('/dashboard', { replace: true });
+              }
+            }, 500);
+            // Also check on focus (in case the new tab is closed or user switches back)
+            const onFocus = async () => {
+              const { data } = await supabase.auth.getSession();
+              if (data.session) {
+                clearInterval(checkSession);
+                window.removeEventListener('focus', onFocus);
+                navigate('/dashboard', { replace: true });
+              }
+            };
+            window.addEventListener('focus', onFocus);
+            // Stop checking after 2 minutes to avoid memory leaks
+            setTimeout(() => {
+              clearInterval(checkSession);
+              window.removeEventListener('focus', onFocus);
+              setLoading(false);
+            }, 120000);
+          } catch (newTabErr) {
+            setLoading(false);
+            setError(
+              newTabErr.message ||
+                'Google sign-in is not available here. Use email sign-in instead.'
+            );
+            showToast('Google sign-in failed — try email sign-in', 'error');
+          }
         }
       }, 1500);
     } catch (err) {

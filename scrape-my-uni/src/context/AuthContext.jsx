@@ -88,15 +88,13 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // Login with Google
+  // Login with Google — full-page redirect (preferred).
   async function loginWithGoogle() {
     try {
       setError(null);
       const { data, error: authError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // Full-page redirect (not popup): popups are blocked in many mobile/
-          // embedded browsers, which silently breaks the popup-based flow.
           redirect: true,
           redirectTo: window.location.origin,
         },
@@ -105,6 +103,35 @@ export function AuthProvider({ children }) {
       return data;
     } catch (err) {
       console.error('Google login error:', err);
+      setError(err.message);
+      throw err;
+    }
+  }
+
+  // Login with Google — open in a new tab (fallback when redirect is blocked).
+  // Uses signInWithOAuth with skipBrowserRedirect to get the OAuth URL and
+  // store the PKCE verifier in localStorage (shared across same-origin tabs).
+  // Opens the URL in a new tab. The callback lands in the new tab, where a
+  // fresh Supabase client reads the verifier from localStorage and completes
+  // the token exchange. onAuthStateChange in the main tab picks up the new
+  // session via the BroadcastChannel / storage event.
+  async function loginWithGoogleNewTab() {
+    try {
+      setError(null);
+      const { data, error: authError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          skipBrowserRedirect: true,
+          redirectTo: window.location.origin,
+        },
+      });
+      if (authError) throw authError;
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+      return data;
+    } catch (err) {
+      console.error('Google new-tab login error:', err);
       setError(err.message);
       throw err;
     }
@@ -282,6 +309,7 @@ export function AuthProvider({ children }) {
     signup,
     login,
     loginWithGoogle,
+    loginWithGoogleNewTab,
     logout,
     resetPassword,
     updateUserProfile,
