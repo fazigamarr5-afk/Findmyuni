@@ -22,9 +22,9 @@ const key =
   process.env.VITE_SUPABASE_ANON_KEY;
 
 if (!url || !key) {
-  console.error('ERROR: Set SUPABASE_URL and SUPABASE_SERVICE_KEY (or SUPABASE_ANON_KEY) env vars.');
-  console.error('In Vercel: Project Settings → Environment Variables. See scrape-my-uni/.env.example');
-  process.exit(1);
+  // No credentials — this is fine as long as we have a cached slug file to
+  // fall back to. Only fail when there is nothing to deploy with.
+  console.warn('⚠️  SUPABASE_URL/SUPABASE_ANON_KEY not set; will use cached university-slugs.json if available.');
 }
 
 const SITE_URL = 'https://www.findmyuni.site';
@@ -109,7 +109,6 @@ function generateSlugs(unis) {
 async function generateSlugsFromDb() {
   console.log('Fetching universities from Supabase...');
   const allUnis = await fetchAllUniversities();
-  console.log(`Fetched ${allUnis.length} universities`);
   return generateSlugs(allUnis);
 }
 
@@ -127,20 +126,28 @@ function loadCachedSlugs() {
 async function main() {
   let slugs;
 
-  try {
-    slugs = await generateSlugsFromDb();
-  } catch (e) {
-    // Network failure — fall back to the last good slug file so the build
-    // continues. Fail loudly only when there is no cache at all.
-    console.warn(`\n⚠️  Supabase fetch failed (${e.message})`);
-    const cached = loadCachedSlugs();
-    if (cached) {
-      console.log(`Using cached university-slugs.json (${cached.length} universities)`);
-      slugs = cached;
-    } else {
-      console.error('ERROR: No cached university-slugs.json available. The build cannot continue.');
-      process.exit(1);
+  if (url && key) {
+    try {
+      slugs = await generateSlugsFromDb();
+    } catch (e) {
+      // Network failure — fall back to the last good slug file so the build
+      // continues. Fail loudly only when there is no cache at all.
+      console.warn(`\n⚠️  Supabase fetch failed (${e.message})`);
+      slugs = loadCachedSlugs();
     }
+  } else {
+    slugs = loadCachedSlugs();
+  }
+
+  if (!slugs || slugs.length === 0) {
+    console.error('ERROR: No university data available (fetch failed and no cached university-slugs.json). The build cannot continue.');
+    console.error('Fix: commit public/university-slugs.json and/or set SUPABASE_URL + SUPABASE_ANON_KEY in Vercel env.');
+    process.exit(1);
+  }
+  if (url && key) {
+    console.log(`Fetched ${slugs.length} universities`);
+  } else {
+    console.log(`Using cached university-slugs.json (${slugs.length} universities)`);
   }
 
   // Save to file
