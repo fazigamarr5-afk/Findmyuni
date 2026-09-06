@@ -3,28 +3,92 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "installCommand": "npm install",
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/comparisons/(.*)\\.html", "status": 301, "dest": "/comparisons/$1" },
-    { "handle": "headers" },
+  "redirects": [
     {
-      "src": "/(.*)",
-      "headers": {
-        "X-Frame-Options": "DENY",
-        "X-Content-Type-Options": "nosniff",
-        "Referrer-Policy": "strict-origin-when-cross-origin",
-        "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
-        "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
-        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://luribqlhnmgslpoqlxmi.supabase.co https://*.supabase.co; frame-ancestors 'none';"
-      }
-    },
-    { "handle": "miss" },
+      "source": "/comparisons/(.*)\\.html",
+      "destination": "/comparisons/$1",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
     {
-      "src": "^(/login|/signup|/forgot-password|/deadlines|/pages|/blog/create|/ui-examples|/dashboard|/profile|/apply|/admin)",
-      "dest": "/index.html"
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
     },
-    { "handle": "error" },
-    { "status": 404, "src": "/(.*)", "dest": "/404.html" }
+    {
+      "source": "/login",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/signup",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/forgot-password",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/deadlines",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/pages/:slug",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/blog/create",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/ui-examples",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/profile",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/apply/:universityId",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://luribqlhnmgslpoqlxmi.supabase.co https://*.supabase.co; frame-ancestors 'none';"
+        }
+      ]
+    }
   ]
-}
+}
