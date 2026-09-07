@@ -96,7 +96,7 @@ export function AuthProvider({ children }) {
         provider: 'google',
         options: {
           redirect: true,
-          redirectTo: window.location.origin,
+          redirectTo: `${window.location.origin}/login`,
         },
       });
       if (authError) throw authError;
@@ -122,12 +122,17 @@ export function AuthProvider({ children }) {
         provider: 'google',
         options: {
           skipBrowserRedirect: true,
-          redirectTo: window.location.origin,
+          redirectTo: `${window.location.origin}/login`,
         },
       });
       if (authError) throw authError;
       if (data?.url) {
-        window.open(data.url, '_blank');
+        const oauthTab = window.open(data.url, '_blank');
+        if (!oauthTab) {
+          throw new Error('Your browser blocked the Google sign-in tab. Please allow pop-ups for FindMyUni and try again.');
+        }
+      } else {
+        throw new Error('Google sign-in did not return an authorization URL.');
       }
       return data;
     } catch (err) {
