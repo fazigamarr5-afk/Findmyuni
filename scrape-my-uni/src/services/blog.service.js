@@ -65,6 +65,19 @@ class BlogService {
   }
 
   /**
+   * Admin: get ALL posts including drafts (no published filter).
+   */
+  async getAllPostsAdmin({ limit = 500 } = {}) {
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return data || [];
+  }
+
+  /**
    * Get featured posts for homepage.
    */
   async getFeaturedPosts(limit = 3) {

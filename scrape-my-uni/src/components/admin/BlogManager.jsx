@@ -83,10 +83,10 @@ const BlogManager = () => {
     setLoading(true);
     try {
       const [allPostsData, cats] = await Promise.all([
-        blogService.getPosts({ page: 1, limit: 500, category: null, search: null }),
+        blogService.getAllPostsAdmin({ limit: 500 }),
         blogService.getCategories().catch(() => []),
       ]);
-      setAllPosts(allPostsData.posts || []);
+      setAllPosts(allPostsData || []);
       setCategories(cats);
     } catch (err) {
       console.error('Error fetching blog posts:', err);
