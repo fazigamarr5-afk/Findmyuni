@@ -193,7 +193,7 @@ const NavBar = ({ mode, onToggleTheme }) => {
               scrolled ? "text-xl" : "text-2xl"
             } hover-underline`}
           >
-            ScrapeMyUni
+            FindMyUni
           </Link>
         </div>
 

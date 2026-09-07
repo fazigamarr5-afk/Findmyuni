@@ -37,7 +37,7 @@ const Footer = () => {
           <div className={`space-y-4 ${scrollAnimation}`}>
             <div className="flex items-center space-x-2 hover-grow">
               <SchoolIcon className="text-yellow-400 text-3xl animate-bounce" style={{ animationDuration: '3s' }} />
-              <h3 className="text-2xl font-bold tracking-wider text-white">ScrapeMyUni</h3>
+              <h3 className="text-2xl font-bold tracking-wider text-white">FindMyUni</h3>
             </div>
             <p className="text-blue-100 text-sm leading-relaxed">
               Helping students find and apply to their dream universities worldwide. We simplify the university search and application process.
@@ -154,7 +154,7 @@ const Footer = () => {
                 <EmailIcon className="text-yellow-400 mt-1 transition-all duration-300 group-hover:scale-110" />
                 <div>
                   <p className="font-medium text-white">Email</p>
-                  <a href="mailto:support@scrapemyuni.com" className="text-blue-100 hover:text-yellow-400 transition-colors duration-300 hover-underline">support@scrapemyuni.com</a>
+                  <a href="mailto:support@findmyuni.site" className="text-blue-100 hover:text-yellow-400 transition-colors duration-300 hover-underline">support@findmyuni.site</a>
                 </div>
               </div>
               <div className="flex items-start space-x-3 group hover-float">
@@ -172,7 +172,7 @@ const Footer = () => {
         <div className="border-t border-blue-700/50 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-blue-100 text-sm flex items-center">
             <CopyrightIcon fontSize="small" className="mr-1 animate-pulse" style={{ animationDuration: '4s' }} />
-            <span>{new Date().getFullYear()} ScrapeMyUni. All rights reserved.</span>
+            <span>{new Date().getFullYear()} FindMyUni. All rights reserved.</span>
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <Link to="/privacy" className="text-blue-100 text-sm hover:text-yellow-400 transition-colors duration-300 hover-underline">

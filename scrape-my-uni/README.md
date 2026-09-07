@@ -1,10 +1,10 @@
-# Scrape My Uni
+# Find My Uni
 
 A university search and comparison application for Pakistani students.
 
 ## Overview
 
-Scrape My Uni helps students find and compare universities in Pakistan. It provides information about programs, admissions, scholarships, and more.
+Find My Uni helps students find and compare universities in Pakistan. It provides information about programs, admissions, scholarships, and more.
 
 
 ## Features

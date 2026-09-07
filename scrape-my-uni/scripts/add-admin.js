@@ -27,7 +27,7 @@ const db = getFirestore(app);
 
 // Admin user to add
 const adminUser = {
-  email: 'admin@scrapemyuni.com',
+  email: 'admin@findmyuni.com',
   name: 'Admin User',
   createdAt: new Date().toISOString(),
   permissions: ['users.read', 'users.write', 'universities.read', 'universities.write']

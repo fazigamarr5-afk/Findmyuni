@@ -25,8 +25,8 @@ load_dotenv()
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="ScrapeMyUni Backend",
-    description="API for ScrapeMyUni application providing university data and scraping functionalities",
+    title="FindMyUni Backend",
+    description="API for FindMyUni application providing university data and scraping functionalities",
     version="1.0.0"
 )
 
@@ -106,7 +106,7 @@ except Exception as e:
 @app.get("/", tags=["Health"])
 async def root():
     """Health check endpoint."""
-    return {"message": "ScrapeMyUni API is running."}
+    return {"message": "FindMyUni API is running."}
 
 @app.get("/health", tags=["Health"])
 async def health_check():

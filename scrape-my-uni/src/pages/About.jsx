@@ -19,7 +19,7 @@ const About = () => {
       <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 text-white py-24 px-4">
       <div className="max-w-screen-lg mx-auto text-center">
           <h1 className="text-5xl md:text-6xl font-extrabold mb-6">
-            About <span className="text-yellow-400">ScrapeMyUni</span>
+            About <span className="text-yellow-400">FindMyUni</span>
           </h1>
           <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
             Empowering students with the tools they need to make informed decisions about their educational future.
@@ -34,7 +34,7 @@ const About = () => {
             <div>
               <h2 className={`text-3xl font-bold ${isDarkMode ? 'text-blue-300' : 'text-blue-900'} mb-6`}>Our Mission</h2>
               <p className={`text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-6 leading-relaxed`}>
-                At ScrapeMyUni, we are passionate about bridging the gap between students and universities. Our mission is to provide comprehensive, accurate, and up-to-date information about universities across Pakistan, making higher education more accessible and understandable for everyone.
+                At FindMyUni, we are passionate about bridging the gap between students and universities. Our mission is to provide comprehensive, accurate, and up-to-date information about universities across Pakistan, making higher education more accessible and understandable for everyone.
               </p>
               <p className={`text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} leading-relaxed`}>
                 We believe every student deserves access to quality information to make one of life's most important decisions - choosing the right university. Through innovative technology and user-centered design, we're simplifying this journey.
@@ -56,7 +56,7 @@ const About = () => {
         <div className="max-w-screen-lg mx-auto text-center mb-16">
           <h2 className={`text-3xl font-bold ${isDarkMode ? 'text-blue-300' : 'text-blue-900'} mb-4`}>What We Offer</h2>
           <p className={`text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} max-w-3xl mx-auto`}>
-            ScrapeMyUni provides a comprehensive suite of tools designed to simplify the university selection process.
+            FindMyUni provides a comprehensive suite of tools designed to simplify the university selection process.
           </p>
         </div>
 
@@ -99,7 +99,7 @@ const About = () => {
           <div className="text-center mb-16">
             <h2 className={`text-3xl font-bold ${isDarkMode ? 'text-blue-300' : 'text-blue-900'} mb-4`}>Our Values</h2>
             <p className={`text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} max-w-3xl mx-auto`}>
-              The core principles that guide everything we do at ScrapeMyUni.
+              The core principles that guide everything we do at FindMyUni.
             </p>
           </div>
 
@@ -155,7 +155,7 @@ const About = () => {
                 <h2 className="text-3xl font-bold">Our Team</h2>
               </div>
               <p className="text-lg text-blue-100 leading-relaxed">
-                ScrapeMyUni is powered by a passionate team of educators, technologists, and data specialists who are committed to transforming how students discover and connect with universities.
+                FindMyUni is powered by a passionate team of educators, technologists, and data specialists who are committed to transforming how students discover and connect with universities.
               </p>
             </div>
           </div>
@@ -167,7 +167,7 @@ const About = () => {
         <div className="max-w-screen-lg mx-auto">
           <h2 className={`text-3xl font-bold ${isDarkMode ? 'text-blue-300' : 'text-blue-900'} mb-6`}>Join Us on This Journey</h2>
           <p className={`text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} max-w-2xl mx-auto mb-8`}>
-            Whether you're a student, parent, or educator, ScrapeMyUni is here to make the journey of finding the right university effortless.
+            Whether you're a student, parent, or educator, FindMyUni is here to make the journey of finding the right university effortless.
           </p>
           <a 
             href="/universities" 

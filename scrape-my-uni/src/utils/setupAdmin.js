@@ -54,4 +54,4 @@ window.addAdminUser = async (email, name) => {
 };
 
 // Example usage in browser console:
-// window.addAdminUser('admin@scrapemyuni.com', 'Admin User'); 
+// window.addAdminUser('admin@findmyuni.com', 'Admin User'); 

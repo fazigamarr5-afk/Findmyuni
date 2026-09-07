@@ -70,7 +70,7 @@ const Features = () => {
     {
       icon: <DeviceHubIcon fontSize="large" />,
       title: "Multi-device Experience",
-      description: "Access ScrapeMyUni seamlessly across desktop, tablet, and mobile devices with our responsive design.",
+      description: "Access FindMyUni seamlessly across desktop, tablet, and mobile devices with our responsive design.",
       color: "bg-pink-500"
     },
     {
@@ -90,7 +90,7 @@ const Features = () => {
             Powerful <span className="text-yellow-400">Features</span>
           </h1>
           <p className="text-xl text-blue-100 max-w-3xl mx-auto">
-            Discover the tools that make ScrapeMyUni the ultimate platform for finding and comparing universities in Pakistan.
+            Discover the tools that make FindMyUni the ultimate platform for finding and comparing universities in Pakistan.
           </p>
         </div>
       </div>
@@ -180,7 +180,7 @@ const Features = () => {
         <div className="max-w-screen-lg mx-auto">
           <h2 className="text-3xl font-bold text-white mb-6">Ready to Find Your Perfect University?</h2>
           <p className="text-xl text-blue-100 max-w-2xl mx-auto mb-8">
-            Start using ScrapeMyUni today and discover how our features can simplify your university search.
+            Start using FindMyUni today and discover how our features can simplify your university search.
           </p>
           <div className="space-x-4">
             <a 

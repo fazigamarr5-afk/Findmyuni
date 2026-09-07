@@ -82,7 +82,7 @@ const Chatbot = () => {
       const welcomeMessage = {
         id: 'welcome',
         sender: 'bot',
-        text: "👋 Hi there! I'm **UniBuddy◕‿◕**, your friendly university assistant at ScrapeMyUni! I can help you find information about Pakistani universities, admission deadlines, programs, and more. What would you like to know today?",
+        text: "👋 Hi there! I'm **UniBuddy◕‿◕**, your friendly university assistant at FindMyUni! I can help you find information about Pakistani universities, admission deadlines, programs, and more. What would you like to know today?",
         timestamp: new Date().toISOString()
       };
       
@@ -302,7 +302,7 @@ const Chatbot = () => {
     const messages = [{
       id: 'welcome',
       sender: 'bot',
-      text: "👋 Hi there! I'm **UniBuddy◕‿◕**, your friendly university assistant at ScrapeMyUni! I can help you find information about Pakistani universities, admission deadlines, programs, and more. What would you like to know today?",
+      text: "👋 Hi there! I'm **UniBuddy◕‿◕**, your friendly university assistant at FindMyUni! I can help you find information about Pakistani universities, admission deadlines, programs, and more. What would you like to know today?",
       timestamp: new Date().toISOString()
     }];
     
@@ -732,11 +732,11 @@ const Chatbot = () => {
                   variant="outlined" 
                   size="small" 
                   color="success"
-                  onClick={() => handleSampleQuestion("What features does ScrapeMyUni offer?")}
+                  onClick={() => handleSampleQuestion("What features does FindMyUni offer?")}
                   fullWidth
                   sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
                 >
-                  What features does ScrapeMyUni offer?
+                  What features does FindMyUni offer?
                 </Button>
               </ListItem>
             </List>

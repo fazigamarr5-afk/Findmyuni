@@ -1,6 +1,6 @@
-# ScrapeMyUni Backend
+# FindMyUni Backend
 
-A Python backend using FastAPI for ScrapeMyUni application. This backend interacts with Firebase Firestore to store and retrieve university data and provides RESTful endpoints for the frontend.
+A Python backend using FastAPI for FindMyUni application. This backend interacts with Firebase Firestore to store and retrieve university data and provides RESTful endpoints for the frontend.
 
 ## Features
 

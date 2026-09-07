@@ -63,8 +63,8 @@ const Contact = () => {
       answer: "We update our university information regularly to ensure you have access to the most current data about programs, deadlines, and requirements."
     },
     {
-      question: "Is ScrapeMyUni free to use?",
-      answer: "Yes, ScrapeMyUni is completely free for students. We're committed to making higher education information accessible to everyone."
+      question: "Is FindMyUni free to use?",
+      answer: "Yes, FindMyUni is completely free for students. We're committed to making higher education information accessible to everyone."
     }
   ];
 
@@ -174,8 +174,8 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className={`text-lg font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>Email</h3>
-                    <a href="mailto:support@scrapemyuni.com" className="text-blue-600 hover:text-blue-800 transition-colors duration-300">
-                      support@scrapemyuni.com
+                    <a href="mailto:support@findmyuni.site" className="text-blue-600 hover:text-blue-800 transition-colors duration-300">
+                      support@findmyuni.site
                     </a>
                   </div>
                 </div>
@@ -235,7 +235,7 @@ const Contact = () => {
             </div>
             <h2 className={`text-3xl font-bold ${isDarkMode ? 'text-blue-300' : 'text-blue-900'} mb-4`}>Frequently Asked Questions</h2>
             <p className={`text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} max-w-3xl mx-auto`}>
-              Find quick answers to common questions about ScrapeMyUni.
+              Find quick answers to common questions about FindMyUni.
             </p>
           </div>
           
@@ -253,7 +253,7 @@ const Contact = () => {
               Can't find the answer you're looking for?
             </p>
             <a 
-              href="mailto:support@scrapemyuni.com" 
+              href="mailto:support@findmyuni.site" 
               className="inline-block bg-blue-800 hover:bg-blue-900 text-white font-bold py-3 px-8 rounded-full transition-colors duration-300"
             >
               Email Our Support Team
