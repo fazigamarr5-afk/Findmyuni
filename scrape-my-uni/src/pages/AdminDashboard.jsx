@@ -354,12 +354,16 @@ const AdminDashboard = () => {
     setSelectedItem(item);
     if (type === 'editUser' || type === 'addUser') {
       setFormData({ email: item?.email || '', name: item?.name || item?.display_name || '', role: item?.role || 'user' });
-    } else if (type === 'editUniversity') {
+    } else if (type === 'editUniversity' || type === 'addUniversity') {
       setFormData({
         name: item?.name || '',
         location: item?.basic_info?.Location || '',
         sector: item?.basic_info?.Sector || 'Public',
-        website: item?.website || item?.url || '',
+        type: item?.basic_info?.Type || '',
+        website: item?.website || item?.url || item?.basic_info?.Website || '',
+        description: item?.description || '',
+        admission_open: item?.admission_open ?? true,
+        logo_url: item?.basic_info?.logo_url || '',
       });
     }
     setOpenDialog(true);
@@ -370,17 +374,53 @@ const AdminDashboard = () => {
 
   const handleFormSubmit = async () => {
     try {
+      if (dialogType === 'addUniversity' && !formData.name?.trim()) {
+        showToast('University name is required', 'error');
+        return;
+      }
       if (dialogType === 'editUser' && selectedItem) {
         await adminService.updateUser(selectedItem.id, formData);
         showToast('User updated successfully', 'success');
       } else if (dialogType === 'editUniversity' && selectedItem) {
         await supabase.from('universities').update({
           name: formData.name,
-          basic_info: { ...selectedItem.basic_info, Location: formData.location, Sector: formData.sector },
-          website: formData.website,
+          description: formData.description || '',
+          url: formData.website,
+          admission_open: formData.admission_open,
+          basic_info: {
+            ...selectedItem.basic_info,
+            Location: formData.location,
+            Sector: formData.sector,
+            Type: formData.type,
+            Website: formData.website,
+            logo_url: formData.logo_url || selectedItem.basic_info?.logo_url,
+          },
           updated_at: new Date().toISOString(),
         }).eq('id', selectedItem.id);
         showToast('University updated successfully', 'success');
+      } else if (dialogType === 'addUniversity') {
+        const { error } = await supabase.from('universities').insert({
+          name: formData.name,
+          description: formData.description || '',
+          url: formData.website,
+          apply_link: formData.website ? `https://${formData.website.replace(/^https?:\/\//, '')}/admissions` : '',
+          admission_open: formData.admission_open ?? true,
+          basic_info: {
+            Type: formData.type,
+            Sector: formData.sector || 'Public',
+            Website: formData.website,
+            Location: formData.location,
+            logo_url: formData.logo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name.split('(')[0])}&background=ea580c&color=fff&size=200&bold=true&font-size=0.4`,
+            Established: '',
+            'Deadline to Apply': '',
+          },
+          programs: { BSPrograms: [], MSPrograms: [], PhDPrograms: [] },
+          scholarships: { merit: [], details: '', government: [], need_based: [] },
+          facilities: { lab: false, wifi: false, hostel: false, sports: false, library: false, cafeteria: false },
+          scraped_at: null,
+        });
+        if (error) throw error;
+        showToast('University added successfully', 'success');
       }
       fetchAllData();
       handleCloseDialog();
@@ -528,7 +568,12 @@ const AdminDashboard = () => {
     <StyledPaper>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h5" fontWeight="bold">Universities ({universities.length})</Typography>
-        <IconButton onClick={fetchAllData} color="primary"><RefreshIcon /></IconButton>
+        <Box>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog('addUniversity')} sx={{ mr: 1 }}>
+            Add University
+          </Button>
+          <IconButton onClick={fetchAllData} color="primary"><RefreshIcon /></IconButton>
+        </Box>
       </Box>
       <TableContainer sx={{ maxHeight: 500 }}>
         <Table stickyHeader size="small">
@@ -1106,21 +1151,47 @@ const AdminDashboard = () => {
           </>
         );
       case 'editUniversity':
+      case 'addUniversity':
         return (
           <>
-            <DialogTitle>Edit University</DialogTitle>
+            <DialogTitle>{dialogType === 'addUniversity' ? 'Add University' : 'Edit University'}</DialogTitle>
             <DialogContent>
-              <TextField autoFocus margin="dense" name="name" label="University Name" fullWidth value={formData.name || ''} onChange={handleFormChange} />
-              <TextField margin="dense" name="location" label="Location" fullWidth value={formData.location || ''} onChange={handleFormChange} />
-              <FormControl fullWidth margin="dense">
-                <InputLabel>Sector</InputLabel>
-                <Select name="sector" value={formData.sector || 'Public'} onChange={handleFormChange} label="Sector">
-                  <MenuItem value="Public">Public</MenuItem>
-                  <MenuItem value="Private">Private</MenuItem>
-                  <MenuItem value="Semi-Government">Semi-Government</MenuItem>
-                </Select>
-              </FormControl>
-              <TextField margin="dense" name="website" label="Website URL" fullWidth value={formData.website || ''} onChange={handleFormChange} />
+              <TextField autoFocus margin="dense" name="name" label="University Name *" fullWidth value={formData.name || ''} onChange={handleFormChange} required />
+              <TextField margin="dense" name="location" label="Location" fullWidth value={formData.location || ''} onChange={handleFormChange} placeholder="e.g. Lahore, Pakistan" />
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <FormControl fullWidth margin="dense">
+                    <InputLabel>Sector</InputLabel>
+                    <Select name="sector" value={formData.sector || 'Public'} onChange={handleFormChange} label="Sector">
+                      <MenuItem value="Public">Public</MenuItem>
+                      <MenuItem value="Private">Private</MenuItem>
+                      <MenuItem value="Semi-Government">Semi-Government</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={6}>
+                  <FormControl fullWidth margin="dense">
+                    <InputLabel>Type</InputLabel>
+                    <Select name="type" value={formData.type || ''} onChange={handleFormChange} label="Type">
+                      <MenuItem value="">General</MenuItem>
+                      <MenuItem value="Engineering">Engineering</MenuItem>
+                      <MenuItem value="Medical">Medical</MenuItem>
+                      <MenuItem value="Business">Business</MenuItem>
+                      <MenuItem value="IT">IT</MenuItem>
+                      <MenuItem value="Agriculture">Agriculture</MenuItem>
+                      <MenuItem value="Law">Law</MenuItem>
+                      <MenuItem value="Teacher Training">Teacher Training</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
+              <TextField margin="dense" name="website" label="Website URL" fullWidth value={formData.website || ''} onChange={handleFormChange} placeholder="example.edu.pk" />
+              <TextField margin="dense" name="logo_url" label="Logo Image URL (optional)" fullWidth value={formData.logo_url || ''} onChange={handleFormChange} />
+              <TextField margin="dense" name="description" label="Short Description" fullWidth multiline minRows={2} value={formData.description || ''} onChange={handleFormChange} />
+              <Box mt={1} display="flex" alignItems="center">
+                <Switch name="admission_open" checked={!!formData.admission_open} onChange={(e) => setFormData(prev => ({ ...prev, admission_open: e.target.checked }))} />
+                <Typography variant="body2">Admissions currently open</Typography>
+              </Box>
             </DialogContent>
           </>
         );
