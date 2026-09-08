@@ -364,6 +364,7 @@ const AdminDashboard = () => {
         description: item?.description || '',
         admission_open: item?.admission_open ?? true,
         logo_url: item?.basic_info?.logo_url || '',
+        deadline: item?.basic_info?.['Deadline to Apply'] || '',
       });
     }
     setOpenDialog(true);
@@ -394,6 +395,7 @@ const AdminDashboard = () => {
             Type: formData.type,
             Website: formData.website,
             logo_url: formData.logo_url || selectedItem.basic_info?.logo_url,
+            'Deadline to Apply': formData.deadline || null,
           },
           updated_at: new Date().toISOString(),
         }).eq('id', selectedItem.id);
@@ -1186,6 +1188,7 @@ const AdminDashboard = () => {
                 </Grid>
               </Grid>
               <TextField margin="dense" name="website" label="Website URL" fullWidth value={formData.website || ''} onChange={handleFormChange} placeholder="example.edu.pk" />
+              <TextField margin="dense" name="deadline" label="Deadline to Apply" type="date" fullWidth value={formData.deadline || ''} onChange={handleFormChange} InputLabelProps={{ shrink: true }} />
               <TextField margin="dense" name="logo_url" label="Logo Image URL (optional)" fullWidth value={formData.logo_url || ''} onChange={handleFormChange} />
               <TextField margin="dense" name="description" label="Short Description" fullWidth multiline minRows={2} value={formData.description || ''} onChange={handleFormChange} />
               <Box mt={1} display="flex" alignItems="center">
